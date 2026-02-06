@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Home - AKSU CBT{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<header class="header university-header">
+    <div class="university-info">
+        <img src="{{ url_for('static', filename='aksu_logo.jpg') }}" alt="AKSU Logo" class="university-logo">
+        <h1 class="university-name">Akwa Ibom State University</h1>
+    </div>
+</header>
+
+<!-- Main Content -->
+<main class="content">
+    <!-- Quick Links Section -->
+    <div class="section-title">
+        <h2>Quick Links</h2>
+        <i class="fas fa-sliders-h filter-icon"></i>
+    </div>
+
+    <div class="simulator-links">
+        <!-- AKSU CBT Simulator (Free) -->
+        <a href="{{ url_for('free_courses') }}" class="sim-card free-sim">
+            <div class="sim-icon-wrapper">
+                <img src="{{ url_for('static', filename='aksu_logo.jpg') }}" alt="AKSU Logo" class="sim-logo">
+            </div>
+            <div class="sim-content">
+                <h3 class="sim-title">AKSU CBT Simulator</h3>
+                <p class="sim-desc">Great tool to practice for AKSU 100level CBT (Limit: 10 questions/10 mins).</p>
+            </div>
+        </a>
+
+        <!-- AKSU CBT Simulator (Paid) -->
+        <a href="{{ url_for('paid_courses') }}" class="sim-card paid-sim">
+            <div class="sim-icon-wrapper">
+                <img src="{{ url_for('static', filename='aksu_logo.jpg') }}" alt="AKSU Logo" class="sim-logo">
+            </div>
+            <div class="sim-content">
+                <h3 class="sim-title">AKSU CBT Simulator (Paid)</h3>
+                <p class="sim-desc">Practice by using the exact AKSU CBT Settings.</p>
+            </div>
+        </a>
+    </div>
+
+    <div class="quick-links-grid">
+        <!-- Study past question Card -->
+        <a href="#" class="card video">
+            <span class="card-title">Study past question</span>
+            <div class="card-icon">
+                <i class="fas fa-play-circle"></i>
+            </div>
+        </a>
+
+        <!-- Course note Card -->
+        <a href="#" class="card novels">
+            <span class="card-title">Course note</span>
+            <div class="card-icon">
+                <i class="fas fa-book-open"></i>
+            </div>
+        </a>
+    </div>
+</main>
+{% endblock %}
