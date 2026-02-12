@@ -1,2 +1,6 @@
 flask
 gunicorn
+authlib
+python-dotnev
+requests
+Werkzeug
