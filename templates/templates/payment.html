@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Payment - PrepCampus{% endblock %}
+
+{% block content %}
+<div class="header university-header">
+    <div class="university-info">
+        <a href="{{ url_for('index') }}" class="back-button"><i class="fas fa-arrow-left"></i></a>
+        <h1 class="university-name">Payment</h1>
+    </div>
+</div>
+
+<main class="content">
+    <div class="payment-container">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-warning">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        
+        <div class="payment-details">
+            <h2>Unlock Paid Simulator</h2>
+            <p>Get access to the full PrepCampus CBT Simulator with exact exam settings.</p>
+            <div class="price-tag">₦500</div>
+            
+            <button type="button" class="btn btn-success" id="payButton" onclick="payWithPaystack()">
+                Pay with Paystack
+            </button>
+            
+            <p class="payment-note">Secure payment processed by Paystack.</p>
+        </div>
+    </div>
+</main>
+
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script>
+    const payButton = document.getElementById('payButton');
+    
+    function payWithPaystack() {
+        let handler = PaystackPop.setup({
+            key: '{{ paystack_public_key }}',
+            email: '{{ email }}',
+            amount: 500 * 100, // Amount in kobo
+            currency: 'NGN',
+            callback: function(response) {
+                // Payment successful
+                verifyPayment(response.reference);
+            },
+            onClose: function() {
+                alert('Payment window closed.');
+            }
+        });
+        handler.openIframe();
+    }
+
+    function verifyPayment(reference) {
+        payButton.disabled = true;
+        payButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+        
+        fetch(`/verify-payment/${reference}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.href = "{{ url_for('paid_courses') }}";
+                } else {
+                    alert('Payment verification failed: ' + (data.message || 'Please contact support.'));
+                    payButton.disabled = false;
+                    payButton.innerHTML = 'Pay with Paystack';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred during verification.');
+                payButton.disabled = false;
+                payButton.innerHTML = 'Pay with Paystack';
+            });
+    }
+</script>
+
+<style>
+.payment-container {
+    padding: 40px 20px;
+    background: white;
+    border-radius: 10px;
+    margin-top: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    text-align: center;
+}
+.price-tag {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #4CAF50;
+    margin: 20px 0;
+}
+.btn {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+.btn-success {
+    background-color: #4CAF50;
+    color: white;
+}
+.btn-success:hover {
+    background-color: #45a049;
+}
+.payment-note {
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: #666;
+    font-style: italic;
+}
+.back-button {
+    color: white;
+    margin-right: 15px;
+    font-size: 1.2rem;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CBT App{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Using FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="mobile-container">
+        {% block content %}{% endblock %}
+        
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav" id="bottomNav">
+            <a href="{{ url_for('index') }}" class="nav-item active">
+                <i class="fas fa-home nav-icon"></i>
+                <span>Home</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-book nav-icon"></i>
+                <span>Study</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-trophy nav-icon"></i>
+                <span>Lardder board</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-comments nav-icon"></i>
+                <span>Chat</span>
+            </a>
+            {% if session.get('user_id') %}
+            <a href="{{ url_for('logout') }}" class="nav-item">
+                <i class="fas fa-sign-out-alt nav-icon"></i>
+                <span>Logout</span>
+            </a>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="nav-item">
+                <i class="fas fa-user nav-icon"></i>
+                <span>Login</span>
+            </a>
+            {% endif %}
+        </nav>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const bottomNav = document.getElementById('bottomNav');
+                
+                // Check if we should be hidden based on the current URL
+                const hiddenPages = ['/free-courses', '/configure-test', '/quiz', '/result', '/review'];
+                const isHiddenPage = hiddenPages.some(page => window.location.pathname.includes(page));
+                
+                if (isHiddenPage) {
+                    bottomNav.classList.add('hidden');
+                }
+
+                // Add click listeners to quick links on the home page to hide nav immediately
+                const quickLinks = document.querySelectorAll('.quick-links-grid a, .simulator-links a');
+                quickLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        if (bottomNav) {
+                            bottomNav.classList.add('hidden');
+                        }
+                    });
+                });
+            });
+        </script>
+    </div>
+</body>
+</html>
