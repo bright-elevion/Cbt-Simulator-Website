@@ -1,6 +1,6 @@
 flask
 gunicorn
 authlib
-python-dotnev
+python-dotenv
 requests
 Werkzeug
