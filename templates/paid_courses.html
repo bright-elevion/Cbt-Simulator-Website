@@ -10,7 +10,7 @@
         </a>
         <div>
             <h2 style="font-size: 20px; font-weight: 700;">Paid Simulator - Select Course</h2>
-            <p style="color: #666; font-size: 14px;">Choose a course to practice with exact AKSU CBT settings</p>
+            <p style="color: #666; font-size: 14px;">Choose a course to practice with exact PrepCampus CBT settings</p>
         </div>
     </div>
 
@@ -61,6 +61,14 @@
             </div>
             <span class="course-name">COS</span>
             <span class="course-label">Computer Science</span>
+        </a>
+
+        <a href="{{ url_for('configure_test', course='COS 103', simulator='paid') }}" class="course-card">
+            <div class="course-icon" style="background: #6a4c93;">
+                <i class="fas fa-code"></i>
+            </div>
+            <span class="course-name">COS 103</span>
+            <span class="course-label">Computer Science 103</span>
         </a>
     </div>
 

@@ -71,6 +71,7 @@
             </div>
         </div>
 
+        {% if simulator != 'study' %}
         <div class="config-section">
             <div class="section-header">
                 <div class="icon-box blue">
@@ -112,6 +113,10 @@
                 </div>
             </div>
         </div>
+        {% else %}
+        <input type="hidden" name="hours" value="0">
+        <input type="hidden" name="minutes" value="0">
+        {% endif %}
 
         <div class="action-footer">
             <button type="submit" class="btn-proceed">Proceed</button>
@@ -300,17 +305,19 @@
             const hoursSelect = document.querySelector('select[name="hours"]');
             const minutesSelect = document.querySelector('select[name="minutes"]');
             
-            // Set hours to 0 and disable
-            hoursSelect.value = "0";
-            Array.from(hoursSelect.options).forEach(opt => {
-                if (opt.value !== "0") opt.disabled = true;
-            });
-            
-            // Set minutes to 10 and disable others > 10
-            minutesSelect.value = "10";
-            Array.from(minutesSelect.options).forEach(opt => {
-                if (parseInt(opt.value) > 10) opt.disabled = true;
-            });
+            if (hoursSelect && minutesSelect) {
+                // Set hours to 0 and disable
+                hoursSelect.value = "0";
+                Array.from(hoursSelect.options).forEach(opt => {
+                    if (opt.value !== "0") opt.disabled = true;
+                });
+                
+                // Set minutes to 10 and disable others > 10
+                minutesSelect.value = "10";
+                Array.from(minutesSelect.options).forEach(opt => {
+                    if (parseInt(opt.value) > 10) opt.disabled = true;
+                });
+            }
         }
         // Fetch total questions for the selected course
         fetch(`/api/course-info?course=${encodeURIComponent(course)}&simulator=${simulator}`)

@@ -8,7 +8,11 @@ from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # Load environment variables
-load_dotenv()
+# Check for key.env first, then fallback to .env
+if os.path.exists('key.env'):
+    load_dotenv('key.env')
+else:
+    load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'supersecretkey')

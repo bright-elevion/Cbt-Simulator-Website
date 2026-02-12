@@ -1,13 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Home - AKSU CBT{% endblock %}
+{% block title %}Home - PrepCampus CBT{% endblock %}
 
 {% block content %}
 <!-- Header -->
 <header class="header university-header">
-    <div class="university-info">
-        <img src="{{ url_for('static', filename='aksu_logo.jpg') }}" alt="AKSU Logo" class="university-logo">
-        <h1 class="university-name">Akwa Ibom State University</h1>
+    <div class="university-info home-logo-container">
+        <img src="{{ url_for('static', filename='prepcampus_logo.png') }}" alt="PrepCampus Logo" class="university-logo home-logo">
     </div>
 </header>
 
@@ -20,32 +19,32 @@
     </div>
 
     <div class="simulator-links">
-        <!-- AKSU CBT Simulator (Free) -->
+        <!-- PrepCampus CBT Simulator (Free) -->
         <a href="{{ url_for('free_courses') }}" class="sim-card free-sim">
             <div class="sim-icon-wrapper">
-                <img src="{{ url_for('static', filename='aksu_logo.jpg') }}" alt="AKSU Logo" class="sim-logo">
+                <img src="{{ url_for('static', filename='prepcampus_logo.png') }}" alt="PrepCampus Logo" class="sim-logo">
             </div>
             <div class="sim-content">
-                <h3 class="sim-title">AKSU CBT Simulator</h3>
-                <p class="sim-desc">Great tool to practice for AKSU 100level CBT (Limit: 10 questions/10 mins).</p>
+                <h3 class="sim-title">CBT Simulator</h3>
+                <p class="sim-desc">Great tool to practice for University questions CBT style (Limit: 10 questions/10 mins).</p>
             </div>
         </a>
 
-        <!-- AKSU CBT Simulator (Paid) -->
+        <!-- PrepCampus CBT Simulator (Paid) -->
         <a href="{{ url_for('paid_courses') }}" class="sim-card paid-sim">
             <div class="sim-icon-wrapper">
-                <img src="{{ url_for('static', filename='aksu_logo.jpg') }}" alt="AKSU Logo" class="sim-logo">
+                <img src="{{ url_for('static', filename='prepcampus_logo.png') }}" alt="PrepCampus Logo" class="sim-logo">
             </div>
             <div class="sim-content">
-                <h3 class="sim-title">AKSU CBT Simulator (Paid)</h3>
-                <p class="sim-desc">Practice by using the exact AKSU CBT Settings.</p>
+                <h3 class="sim-title">CBT Simulator (Paid)</h3>
+                <p class="sim-desc">Practice by using the exact university CBT Settings.</p>
             </div>
         </a>
     </div>
 
     <div class="quick-links-grid">
         <!-- Study past question Card -->
-        <a href="#" class="card video">
+        <a href="{{ url_for('study_courses') }}" class="card video">
             <span class="card-title">Study past question</span>
             <div class="card-icon">
                 <i class="fas fa-play-circle"></i>
