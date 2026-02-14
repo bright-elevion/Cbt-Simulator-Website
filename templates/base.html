@@ -26,16 +26,20 @@
                 <i class="fas fa-trophy nav-icon"></i>
                 <span>Leaderboard</span>
             </a>
-            <a href="#" class="nav-item">
-                <i class="fas fa-comments nav-icon"></i>
-                <span>Chat</span>
-            </a>
             {% if session.get('user_id') %}
+            <a href="{{ url_for('profile') }}" class="nav-item {{ 'active' if request.endpoint == 'profile' }}">
+                <i class="fas fa-comment-alt nav-icon"></i>
+                <span>Feedback</span>
+            </a>
             <a href="{{ url_for('profile') }}" class="nav-item {{ 'active' if request.endpoint == 'profile' }}">
                 <i class="fas fa-user-circle nav-icon"></i>
                 <span>Me</span>
             </a>
             {% else %}
+            <a href="{{ url_for('login') }}" class="nav-item {{ 'active' if request.endpoint == 'login' }}">
+                <i class="fas fa-comment-alt nav-icon"></i>
+                <span>Feedback</span>
+            </a>
             <a href="{{ url_for('login') }}" class="nav-item {{ 'active' if request.endpoint == 'login' }}">
                 <i class="fas fa-user nav-icon"></i>
                 <span>Login</span>

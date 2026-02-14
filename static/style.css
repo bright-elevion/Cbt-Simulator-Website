@@ -34,6 +34,7 @@ body {
     display: flex;
     flex-direction: column;
     box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    padding-bottom: 70px; /* Space for fixed bottom nav */
 }
 
 /* Header Section */
@@ -124,8 +125,10 @@ body {
     padding: 15px 0;
     border-top: 1px solid #eee;
     background: white;
-    position: sticky;
+    position: fixed;
     bottom: 0;
+    width: 100%;
+    max-width: 450px;
     z-index: 100;
 }
 
