@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - PrepCampus CBT{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="profile-pic-wrapper">
+            {% if user.profile_picture %}
+                <img src="{{ url_for('static', filename='uploads/' + user.profile_picture) }}" alt="Profile Picture" id="profile-img">
+            {% else %}
+                <div class="profile-placeholder">
+                    <i class="fas fa-user"></i>
+                </div>
+            {% endif %}
+            <form id="upload-form" action="{{ url_for('upload_profile_picture') }}" method="POST" enctype="multipart/form-data">
+                <label for="profile_pic" class="upload-btn">
+                    <i class="fas fa-camera"></i>
+                </label>
+                <input type="file" id="profile_pic" name="profile_pic" style="display: none;" onchange="document.getElementById('upload-form').submit();">
+            </form>
+        </div>
+        <h2 class="username">{{ user.username }}</h2>
+        <p class="user-status">{{ user.status }}</p>
+    </div>
+
+    <div class="profile-info">
+        <div class="info-item">
+            <span class="info-label">Email</span>
+            <span class="info-value">{{ user.email }}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Member Since</span>
+            <span class="info-value">{{ user.created_at.split(' ')[0] }}</span>
+        </div>
+    </div>
+
+    <div class="profile-actions">
+        <button class="action-btn" onclick="document.getElementById('feedback-modal').style.display='block'">
+            <i class="fas fa-comment-alt"></i>
+            <span>Send Feedback</span>
+        </button>
+        <a href="{{ url_for('logout') }}" class="action-btn logout-btn">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </a>
+    </div>
+</div>
+
+<!-- Feedback Modal -->
+<div id="feedback-modal" class="modal">
+    <div class="modal-content">
+        <h3>Send Feedback</h3>
+        <form action="{{ url_for('send_feedback') }}" method="POST">
+            <textarea name="message" placeholder="Tell us what you think..." required></textarea>
+            <div class="modal-btns">
+                <button type="button" class="btn btn-prev" onclick="document.getElementById('feedback-modal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn btn-next">Send</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .profile-container {
+        padding: 40px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .profile-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .profile-pic-wrapper {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 15px;
+    }
+    #profile-img, .profile-placeholder {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        background: #f0f2f5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 50px;
+        color: #999;
+        border: 3px solid var(--primary-blue);
+    }
+    .upload-btn {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: var(--primary-blue);
+        color: white;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        border: 2px solid white;
+    }
+    .username {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+    .user-status {
+        color: var(--text-gray);
+        font-weight: 600;
+        background: #f0f2f5;
+        padding: 4px 12px;
+        border-radius: 20px;
+        display: inline-block;
+        font-size: 14px;
+    }
+    .profile-info {
+        width: 100%;
+        background: #f9f9f9;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+    .info-item:last-child {
+        border-bottom: none;
+    }
+    .info-label {
+        color: var(--text-gray);
+        font-size: 14px;
+    }
+    .info-value {
+        font-weight: 600;
+    }
+    .profile-actions {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 15px 20px;
+        background: white;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        text-decoration: none;
+        color: var(--text-dark);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .action-btn:active {
+        background: #f5f5f5;
+    }
+    .action-btn i {
+        color: var(--primary-blue);
+        font-size: 18px;
+    }
+    .logout-btn i {
+        color: #f44336;
+    }
+    
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+        background-color: white;
+        margin: 20% auto;
+        padding: 25px;
+        border-radius: 20px;
+        width: 85%;
+        max-width: 400px;
+    }
+    .modal-content h3 {
+        margin-bottom: 15px;
+    }
+    .modal-content textarea {
+        width: 100%;
+        height: 120px;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-family: inherit;
+        resize: none;
+    }
+    .modal-btns {
+        display: flex;
+        gap: 10px;
+    }
+</style>
+{% endblock %}

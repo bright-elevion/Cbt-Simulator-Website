@@ -14,29 +14,29 @@
         
         <!-- Bottom Navigation -->
         <nav class="bottom-nav" id="bottomNav">
-            <a href="{{ url_for('index') }}" class="nav-item active">
+            <a href="{{ url_for('index') }}" class="nav-item {{ 'active' if request.endpoint == 'index' }}">
                 <i class="fas fa-home nav-icon"></i>
                 <span>Home</span>
             </a>
-            <a href="#" class="nav-item">
+            <a href="{{ url_for('study_courses') }}" class="nav-item {{ 'active' if request.endpoint == 'study_courses' }}">
                 <i class="fas fa-book nav-icon"></i>
                 <span>Study</span>
             </a>
-            <a href="#" class="nav-item">
+            <a href="{{ url_for('leaderboard') }}" class="nav-item {{ 'active' if request.endpoint == 'leaderboard' }}">
                 <i class="fas fa-trophy nav-icon"></i>
-                <span>Lardder board</span>
+                <span>Leaderboard</span>
             </a>
             <a href="#" class="nav-item">
                 <i class="fas fa-comments nav-icon"></i>
                 <span>Chat</span>
             </a>
             {% if session.get('user_id') %}
-            <a href="{{ url_for('logout') }}" class="nav-item">
-                <i class="fas fa-sign-out-alt nav-icon"></i>
-                <span>Logout</span>
+            <a href="{{ url_for('profile') }}" class="nav-item {{ 'active' if request.endpoint == 'profile' }}">
+                <i class="fas fa-user-circle nav-icon"></i>
+                <span>Me</span>
             </a>
             {% else %}
-            <a href="{{ url_for('login') }}" class="nav-item">
+            <a href="{{ url_for('login') }}" class="nav-item {{ 'active' if request.endpoint == 'login' }}">
                 <i class="fas fa-user nav-icon"></i>
                 <span>Login</span>
             </a>
@@ -47,7 +47,7 @@
                 const bottomNav = document.getElementById('bottomNav');
                 
                 // Check if we should be hidden based on the current URL
-                const hiddenPages = ['/free-courses', '/configure-test', '/quiz', '/result', '/review'];
+                const hiddenPages = ['/free-courses', '/configure-test', '/quiz', '/result', '/review', '/payment'];
                 const isHiddenPage = hiddenPages.some(page => window.location.pathname.includes(page));
                 
                 if (isHiddenPage) {

@@ -6,6 +6,7 @@ from functools import wraps
 from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 
 # Load environment variables
 # Check for key.env first, then fallback to .env
@@ -16,6 +17,15 @@ else:
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'supersecretkey')
+
+# Upload configuration
+UPLOAD_FOLDER = os.path.join('static', 'uploads')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+os.makedirs(os.path.join(app.root_path, UPLOAD_FOLDER), exist_ok=True)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # OAuth Configuration
 oauth = OAuth(app)
@@ -191,6 +201,73 @@ def logout():
     session.clear()
     return redirect(url_for('index'))
 
+@app.route('/profile')
+@login_required
+def profile():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],))
+    user = cursor.fetchone()
+    conn.close()
+    return render_template('profile.html', user=user)
+
+@app.route('/upload-profile-picture', methods=['POST'])
+@login_required
+def upload_profile_picture():
+    if 'profile_pic' not in request.files:
+        flash('No file part')
+        return redirect(url_for('profile'))
+    
+    file = request.files['profile_pic']
+    if file.filename == '':
+        flash('No selected file')
+        return redirect(url_for('profile'))
+    
+    if file and allowed_file(file.filename):
+        filename = secure_filename(f"user_{session['user_id']}_{file.filename}")
+        file.save(os.path.join(app.root_path, app.config['UPLOAD_FOLDER'], filename))
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('UPDATE users SET profile_picture = ? WHERE id = ?', (filename, session['user_id']))
+        conn.commit()
+        conn.close()
+        
+        flash('Profile picture updated!')
+    else:
+        flash('Invalid file type. Please upload an image.')
+        
+    return redirect(url_for('profile'))
+
+@app.route('/send-feedback', methods=['POST'])
+@login_required
+def send_feedback():
+    message = request.form.get('message')
+    if message:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO feedback (user_id, message) VALUES (?, ?)', (session['user_id'], message))
+        conn.commit()
+        conn.close()
+        flash('Thank you for your feedback!')
+    return redirect(url_for('profile'))
+
+@app.route('/leaderboard')
+def leaderboard():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    # Get top 10 scores with usernames
+    cursor.execute('''
+        SELECT s.*, u.username 
+        FROM scores s 
+        JOIN users u ON s.user_id = u.id 
+        ORDER BY (CAST(s.score AS FLOAT) / s.total) DESC, s.created_at DESC 
+        LIMIT 10
+    ''')
+    top_scores = cursor.fetchall()
+    conn.close()
+    return render_template('leaderboard.html', top_scores=top_scores)
+
 @app.route('/payment', methods=['GET'])
 @login_required
 def payment():
@@ -272,9 +349,9 @@ def configure_test():
     course_names = {
         'MTH': 'Mathematics', 'CHM': 'Chemistry', 'PHY': 'Physics',
         'STA': 'Statistics', 'BIO': 'Biology', 'COS': 'Computer Science',
-        'MTH101/111': 'Mathematics', 'CHM101': 'Chemistry', 'PHY101': 'Physics 101',
-        'PHY111': 'Physics 111', 'PHY121': 'Physics 121', 'STA101': 'Statistics',
-        'BIO101': 'Biology', 'COS101': 'Computer Science', 'COS 103': 'Computer Science 103'
+        'MTH101': 'Mathematics 101', 'CHM101': 'Chemistry 101', 'PHY101': 'Physics 101',
+        'PHY111': 'Physics 111', 'PHY121': 'Physics 121', 'STA101': 'Statistics 101',
+        'BIO101': 'Biology 101', 'COS101': 'Computer Science 101', 'COS 103': 'Computer Science 103'
     }
     course_full_name = course_names.get(course, course)
     session['simulator_type'] = simulator
@@ -360,26 +437,38 @@ def get_questions():
         if not course: return jsonify({'error': 'Course parameter required'}), 400
         if simulator == 'free':
             limit = min(int(limit), 10) if limit else 10
+        elif limit:
+            limit = int(limit)
+            
         conn = get_db_connection()
         cursor = conn.cursor()
-        if simulator == 'study':
-            query = 'SELECT id, question_text, option_a, option_b, option_c, option_d, correct_option, solution FROM questions WHERE course_code = ?'
-        else:
-            query = 'SELECT id, question_text, option_a, option_b, option_c, option_d FROM questions WHERE course_code = ?'
+        
+        # Always fetch all fields to avoid missing data in any mode
+        query = 'SELECT id, question_text, option_a, option_b, option_c, option_d, correct_option, solution FROM questions WHERE course_code = ? ORDER BY RANDOM()'
         params = [course]
+        
         if limit:
             query += ' LIMIT ?'
-            params.append(int(limit))
+            params.append(limit)
+            
         cursor.execute(query, tuple(params))
         questions = cursor.fetchall()
         conn.close()
+        
         if not questions: return jsonify({'error': f'No questions found for course {course}'}), 404
+        
         questions_list = []
         for q in questions:
-            item = {'id': q['id'], 'question_text': q['question_text'], 'option_a': q['option_a'], 'option_b': q['option_b'], 'option_c': q['option_c'], 'option_d': q['option_d']}
-            if simulator == 'study':
-                item['correct_option'] = q['correct_option']
-                item['solution'] = q['solution'] if q['solution'] else "No detailed solution available."
+            item = {
+                'id': q['id'], 
+                'question_text': q['question_text'], 
+                'option_a': q['option_a'], 
+                'option_b': q['option_b'], 
+                'option_c': q['option_c'], 
+                'option_d': q['option_d'],
+                'correct_option': q['correct_option'],
+                'solution': q['solution'] if q['solution'] else "No detailed solution available."
+            }
             questions_list.append(item)
         return jsonify(questions_list)
     except Exception as e:
@@ -396,6 +485,16 @@ def submit():
         session['score'] = score
         session['total'] = len(answers)
         session['user_answers'] = answers
+        
+        # Save score to database if user is logged in
+        if 'user_id' in session:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('INSERT INTO scores (user_id, course_code, score, total) VALUES (?, ?, ?, ?)',
+                           (session['user_id'], course, score, len(answers)))
+            conn.commit()
+            conn.close()
+            
         return jsonify({'score': score, 'total': len(answers)})
     except Exception as e:
         return jsonify({'error': 'Failed to submit quiz'}), 500
@@ -408,12 +507,12 @@ def get_detailed_results(answers, course):
         for answer_data in answers:
             question_id = answer_data.get('question_id')
             user_answer = answer_data.get('answer')
-            cursor.execute('SELECT question_text, option_a, option_b, option_c, option_d, correct_option, solution FROM questions WHERE id = ? AND course_code = ?', (question_id, course))
+            cursor.execute('SELECT question_text, option_a, option_b, option_c, option_d, correct_option, solution FROM questions WHERE id = ?', (question_id,))
             q = cursor.fetchone()
             if q:
                 review_data.append({
                     'id': question_id, 'question_text': q['question_text'], 'option_a': q['option_a'], 'option_b': q['option_b'], 'option_c': q['option_c'], 'option_d': q['option_d'],
-                    'user_answer': user_answer, 'correct_answer': q['correct_option'], 'solution': q['solution'] if 'solution' in q.keys() else "No detailed solution available."
+                    'user_answer': user_answer, 'correct_answer': q['correct_option'], 'solution': q['solution'] if q['solution'] else "No detailed solution available."
                 })
         conn.close()
         return review_data
@@ -429,7 +528,7 @@ def calculate_score(answers, course):
             question_id = answer_data.get('question_id')
             user_answer = answer_data.get('answer')
             if user_answer is None: continue
-            cursor.execute('SELECT correct_option FROM questions WHERE id = ? AND course_code = ?', (question_id, course))
+            cursor.execute('SELECT correct_option FROM questions WHERE id = ?', (question_id,))
             result = cursor.fetchone()
             if result and user_answer == result['correct_option']:
                 score += 1

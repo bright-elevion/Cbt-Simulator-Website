@@ -33,7 +33,35 @@ def init_db():
         username TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
         password TEXT,
+        profile_picture TEXT,
+        status TEXT DEFAULT 'Student',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    ''')
+
+    # Create scores table for leaderboard
+    cursor.execute('DROP TABLE IF EXISTS scores')
+    cursor.execute('''
+    CREATE TABLE scores (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        course_code TEXT NOT NULL,
+        score INTEGER NOT NULL,
+        total INTEGER NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users (id)
+    )
+    ''')
+
+    # Create feedback table
+    cursor.execute('DROP TABLE IF EXISTS feedback')
+    cursor.execute('''
+    CREATE TABLE feedback (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        message TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users (id)
     )
     ''')
     
@@ -96,7 +124,7 @@ def init_db():
         ("PHY101", "A lever with an effort arm of 1.2 m and a resistance arm of 0.3 m is used to lift a 400-N load with an actual effort of 120 N. What is the efficiency of the lever?", "83.3%", "75.0%", "90.0%", "66.7%", "A", "No Explanation"),
         ("PHY101", "Which quantity is a vector?", "Work", "Energy", "Momentum", "Power", "C", "No Explanation"),
         ("PHY101", "The dimensional formula of force is: ", "MLT⁻¹", "MLT⁻²", "ML²T⁻²", "ML²T⁻¹", "B", "No Explanation"),
-        ("PHY101", "A body moves 9 m east and 12 m north. Its displacement is: ", "15 m", "21 m", "3 m", "108 m", "A", "No Explanation")
+        ("PHY101", "A body moves 9 m east and 12 m north. Its displacement is: ", "15 m", "21 m", "3 m", "108 m", "A", "No Explanation"),
 
         # COS 103
         ("COS 103", "x = 5\nx = x + x\nprint(x)", "5", "10", "15", "25", "B", "x starts at 5. x + x is 5 + 5 = 10. So x becomes 10."),
@@ -112,8 +140,6 @@ def init_db():
 
         #Math
         ("MTH101", "Solve the inequality 1/(x-1) < 2/(x+2).", "(-2, 1) U (4, inf)", "(-inf, -2) U (1, 4)", "(1, 4)", "(-2, 4)", "A", "Move all terms to one side: 1/(x-1) - 2/(x+2) < 0. Find a common denominator: (x+2 - 2(x-1)) / ((x-1)(x+2)) < 0. (x+2 - 2x + 2) / ((x-1)(x+2)) < 0. (-x + 4) / ((x-1)(x+2)) < 0. Multiply by -1 and reverse the inequality: (x - 4) / ((x-1)(x+2)) > 0. Critical points are x = -2, x = 1, x = 4. Test intervals: 1) x < -2 (e.g., x=-3): (-7)/((-4)(-1)) = -7/4 < 0 (False). 2) -2 < x < 1 (e.g., x=0): (-4)/((-1)(2)) = -4/-2 = 2 > 0 (True). 3) 1 < x < 4 (e.g., x=2): (-2)/((1)(4)) = -2/4 < 0 (False). 4) x > 4 (e.g., x=5): (1)/((4)(7)) = 1/28 > 0 (True). So the solution is (-2, 1) U (4, inf)."),
-        ("MTH101", "Solve for x: 9ˣ - 4(3ˣ) + 3 = 0.", "x = 0, 1", "x = 1, 2", "x = 0, 2", "x = -1, 0", "A", "Rewrite 9ˣ as (3²)ˣ = (3ˣ)². Let y = 3ˣ. The equation becomes y² - 4y + 3 = 0. Factor the quadratic: (y - 1)(y - 3) = 0. So, y = 1 or y = 3. Substitute back y = 3ˣ: Case 1: 3ˣ = 1 = 3⁰ => x = 0. Case 2: 3ˣ = 3 = 3¹ => x = 1. So the solutions are x = 0, 1."),
-        ("MTH101", "If log₂ 3 = a and log₃ 5 = b, express log₁₀ 2 in terms of a and b.", "1/(a+ab)", "a/(1+b)", "b/(1+a)", "(a+b)/ab", "A", "We have log₂ 3 = a and log₃ 5 = b. We want to express log₁₀ 2. Use change of base formula. log₁₀ 2 = 1 / log₂ 10 = 1 / (log₂ (2*5)) = 1 / (1 + log₂ 5). Now we need log₂ 5. We know log₂ 3 = a and log₃ 5 = b. log₂ 5 = log₂ 3 * log₃ 5 = a * b. So, log₁₀ 2 = 1 / (1 + ab)."),
         ("MTH101", "Find the value of m for which the equation (m-1)x² + 2mx + (m+3) = 0 has equal roots.", "m = 3/2", "m = -3/2", "m = 1", "m = -1", "A", "For a quadratic equation Ax² + Bx + C = 0 to have equal roots, the discriminant (Δ = B² - 4AC) must be equal to 0. Here, A = (m-1), B = 2m, C = (m+3). So, (2m)² - 4(m-1)(m+3) = 0. 4m² - 4(m² + 3m - m - 3) = 0. 4m² - 4m² - 8m + 12 = 0. -8m + 12 = 0. 8m = 12. m = 12/8 = 3/2."),
         ("MTH101", "If f(x) = x² - 3x + 2, find all values of x such that f(2x) = f(x+1).", "x = 1/3, 1", "x = 0, 1/3", "x = 1, 2", "x = 0, 1", "A", "Given f(x) = x² - 3x + 2. We need to solve f(2x) = f(x+1). f(2x) = (2x)² - 3(2x) + 2 = 4x² - 6x + 2. f(x+1) = (x+1)² - 3(x+1) + 2 = x² + 2x + 1 - 3x - 3 + 2 = x² - x. Set them equal: 4x² - 6x + 2 = x² - x. 3x² - 5x + 2 = 0. Factor the quadratic equation: (3x - 2)(x - 1) = 0. So, 3x - 2 = 0 => x = 2/3 or x - 1 = 0 => x = 1. Therefore, the values of x are 2/3 and 1."),
         ("MTH101", "The force of attraction F between two masses m₁ and m₂ varies directly as the product of the masses and inversely as the square of the distance d between them. If the distance is doubled and each mass is tripled, what is the new force in terms of the original force F?", "9/4 F", "3/2 F", "9/2 F", "3/4 F", "A", "The original force is F = k(m₁m₂)/d². New distance d′ = 2d. New masses m₁′ = 3m₁, m₂′ = 3m₂. The new force F′ = k(m₁′m₂′)/(d′)² = k(3m₁)(3m₂)/(2d)² = k(9m₁m₂)/(4d²) = (9/4) * k(m₁m₂)/d² = (9/4)F. So the new force is 9/4 F."),
@@ -126,24 +152,21 @@ def init_db():
         ("MTH101", "Solve the inequality (x² - 3x + 2)/(x-3) > 0.", "(1, 2) U (3, inf)", "(-inf, 1) U (2, 3)", "(1, 3)", "(2, inf)", "A", "First, factor the numerator: x² - 3x + 2 = (x-1)(x-2). So the inequality is (x-1)(x-2)/(x-3) > 0. The critical points are x = 1, x = 2, x = 3. We test intervals: 1) x < 1 (e.g., x=0): (-1)(-2)/(-3) = -2/3 < 0 (False). 2) 1 < x < 2 (e.g., x=1.5): (0.5)(-0.5)/(-1.5) = 0.25/1.5 > 0 (True). 3) 2 < x < 3 (e.g., x=2.5): (1.5)(0.5)/(-0.5) = -1.5 < 0 (False). 4) x > 3 (e.g., x=4): (3)(2)/(1) = 6 > 0 (True). So the solution is (1, 2) U (3, inf)."),
         ("MTH101", "Find the inverse of the function f(x) = (2x-3)/(5x+4) and state its domain.", "f⁻¹(x) = (-4x-3)/(5x-2), Domain: x ≠ 2/5", "f⁻¹(x) = (4x+3)/(2-5x), Domain: x ≠ 2/5", "f⁻¹(x) = (4x+3)/(2-5x), Domain: x ≠ -4/5", "f⁻¹(x) = (-4x-3)/(5x-2), Domain: x ≠ -4/5", "A", "Let y = (2x-3)/(5x+4). To find the inverse, swap x and y: x = (2y-3)/(5y+4). x(5y+4) = 2y-3. 5xy + 4x = 2y - 3. 5xy - 2y = -4x - 3. y(5x - 2) = -4x - 3. y = (-4x - 3) / (5x - 2). So, f⁻¹(x) = (-4x - 3) / (5x - 2). The domain of f⁻¹(x) is all real numbers except where the denominator is zero: 5x - 2 ≠ 0 => 5x ≠ 2 => x ≠ 2/5."),
         ("MTH101", "A variable V varies directly as the square of x and inversely as y. If x increases by 20% and y decreases by 10%, find the percentage change in V.", "60% increase", "20% increase", "10% decrease", "50% increase", "A", "The variation can be written as V = kx²/y. Let the original values be x and y. The new values are x′ = x + 0.20x = 1.2x and y′ = y - 0.10y = 0.9y. The new V′ = k(x′)²/y′ = k(1.2x)²/(0.9y) = k(1.44x²)/(0.9y) = (1.44/0.9) * (kx²/y) = 1.6 * V. The percentage change is ((V′ - V)/V) * 100% = ((1.6V - V)/V) * 100% = (0.6V/V) * 100% = 60% increase."),
-        
         ("MTH101", "In a group of 150 people, 70 like Math, 60 like Physics, and 50 like Chemistry. 30 like Math and Physics, 20 like Physics and Chemistry, and 25 like Math and Chemistry. 10 like all three. Find the number of people who like exactly two subjects.", "45", "50", "55", "60", "A", "Let M, P, C be the sets of people who like Math, Physics, and Chemistry respectively. Given: n(M)=70, n(P)=60, n(C)=50, n(M∩P)=30, n(P∩C)=20, n(M∩C)=25, n(M∩P∩C)=10. The number of people who like exactly two subjects is given by: n(M∩P only) + n(P∩C only) + n(M∩C only) = (30 - 10) + (20 - 10) + (25 - 10) = 20 + 10 + 15 = 45."),
-        
-         ("MTH101", "Solve for x in the equation logₓ 2 + log₂ x = 2.5.", "x = 4, sqrt(2)", "x = 2, 4", "x = 2, sqrt(2)", "x = 4, 2", "A", "Let y = log₂ x. Then logₓ 2 = 1/y. The equation becomes 1/y + y = 2.5 = 5/2. Multiply by 2y: 2 + 2y² = 5y. 2y² - 5y + 2 = 0. Factor the quadratic: (2y - 1)(y - 2) = 0. So, 2y - 1 = 0 => y = 1/2 or y - 2 = 0 => y = 2. Substitute back y = log₂ x: Case 1: log₂ x = 1/2 => x = 2^(1/2) = sqrt(2). Case 2: log₂ x = 2 => x = 2² = 4. So the solutions are x = 4, sqrt(2)."),
+        ("MTH101", "Solve for x in the equation logₓ 2 + log₂ x = 2.5.", "x = 4, sqrt(2)", "x = 2, 4", "x = 2, sqrt(2)", "x = 4, 2", "A", "Let y = log₂ x. Then logₓ 2 = 1/y. The equation becomes 1/y + y = 2.5 = 5/2. Multiply by 2y: 2 + 2y² = 5y. 2y² - 5y + 2 = 0. Factor the quadratic: (2y - 1)(y - 2) = 0. So, 2y - 1 = 0 => y = 1/2 or y - 2 = 0 => y = 2. Substitute back y = log₂ x: Case 1: log₂ x = 1/2 => x = 2^(1/2) = sqrt(2). Case 2: log₂ x = 2 => x = 2² = 4. So the solutions are x = 4, sqrt(2)."),
         ("MTH101", "Find the range of values of k for which the equation x² + kx + 4 = 0 has real and distinct roots.", "k < -4 or k > 4", "-4 < k < 4", "k <= -4 or k >= 4", "-4 <= k <= 4", "A", "For a quadratic equation ax² + bx + c = 0 to have real and distinct roots, the discriminant (Δ = b² - 4ac) must be greater than 0. Here, a=1, b=k, c=4. So, k² - 4(1)(4) > 0. k² - 16 > 0. (k - 4)(k + 4) > 0. The critical points are k = -4 and k = 4. We test intervals: 1) k < -4 (e.g., k=-5): (-9)(-1) = 9 > 0 (True). 2) -4 < k < 4 (e.g., k=0): (-4)(4) = -16 < 0 (False). 3) k > 4 (e.g., k=5): (1)(9) = 9 > 0 (True). So the range of values for k is k < -4 or k > 4."),
         ("MTH101", "Solve by completing the square: 3x² - 10x + 3 = 0.", "x = 1/3, 3", "x = -1/3, 3", "x = 1/3, -3", "x = -1/3, -3", "A", "Given 3x² - 10x + 3 = 0. Divide by 3: x² - (10/3)x + 1 = 0. Move the constant term: x² - (10/3)x = -1. To complete the square, add ((-10/3)/2)² = (-5/3)² = 25/9 to both sides: x² - (10/3)x + 25/9 = -1 + 25/9. (x - 5/3)² = -9/9 + 25/9 = 16/9. Take the square root of both sides: x - 5/3 = ±√(16/9) = ±4/3. Case 1: x - 5/3 = 4/3 => x = 5/3 + 4/3 = 9/3 = 3. Case 2: x - 5/3 = -4/3 => x = 5/3 - 4/3 = 1/3. So the solutions are x = 1/3, 3."),
         ("MTH101", "Form a quadratic equation whose roots are 2 + √3 and 2 - √3.", "x² - 4x + 1 = 0", "x² + 4x + 1 = 0", "x² - 4x - 1 = 0", "x² + 4x - 1 = 0", "A", "For a quadratic equation x² - (sum of roots)x + (product of roots) = 0. Sum of roots = (2 + √3) + (2 - √3) = 4. Product of roots = (2 + √3)(2 - √3) = 2² - (√3)² = 4 - 3 = 1. So the quadratic equation is x² - 4x + 1 = 0."),
         ("MTH101", "Solve the equation x⁴ - 5x² + 4 = 0.", "x = ±1, ±2", "x = ±1, ±4", "x = 1, 2", "x = -1, -2", "A", "Let y = x². The equation becomes y² - 5y + 4 = 0. Factor the quadratic: (y - 1)(y - 4) = 0. So, y = 1 or y = 4. Substitute back y = x²: Case 1: x² = 1 => x = ±1. Case 2: x² = 4 => x = ±2. So the solutions are x = ±1, ±2."),
         ("MTH101", "Let U = {1, 2, 3, ..., 10} be the universal set. If A = {1, 3, 5, 7, 9} and B = {2, 3, 5, 7}, find (A Δ B)′, where Δ denotes the symmetric difference.", "{1,2,3,4,5,6,7,8,9,10}", "{3, 4, 5, 6, 7, 8, 10}", "{1,9}", "{2,3,5,7}", "B", "Given U = {1, 2, 3, ..., 10}, A = {1, 3, 5, 7, 9}, B = {2, 3, 5, 7}. First, find the symmetric difference A Δ B = (A \ B) ∪ (B \ A). A \ B = {1, 9}. B \ A = {2}. So, A Δ B = {1, 2, 9}. Now, find the complement (A Δ B)′ with respect to U. (A Δ B)′ = U \ (A Δ B) = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10} \ {1, 2, 9} = {3, 4, 5, 6, 7, 8, 10}."),
         ("MTH101", "Given that A ⊂ B, simplify the expression (A ∩ B) ∪ (B \ A).", "A", "B", "A ∩ B", "A ∪ B", "B", "Given A ⊂ B, which means A is a subset of B. If A ⊂ B, then A ∩ B = A. Also, B \ A represents elements in B but not in A. The expression becomes A ∪ (B \ A). Since A and (B \ A) are disjoint (they have no common elements), their union is simply B. Alternatively, A ∪ (B \ A) = A ∪ (B ∩ A′). Using distributive law, this is (A ∪ B) ∩ (A ∪ A′) = (A ∪ B) ∩ U = A ∪ B. Since A ⊂ B, A ∪ B = B. So the simplified expression is B."),
-        
     ]
     
     cursor.executemany('INSERT INTO questions (course_code, question_text, option_a, option_b, option_c, option_d, correct_option, solution) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', questions)
     
     conn.commit()
     conn.close()
-    print("Database initialized successfully with updated schema and COS 103 questions.")
+    print("Database initialized successfully with updated schema and questions.")
 
 if __name__ == '__main__':
     init_db()
