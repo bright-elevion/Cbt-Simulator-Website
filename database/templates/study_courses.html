@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Study Questions - Select Course{% endblock %}
+
+{% block content %}
+<div class="quiz-container">
+    <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
+        <a href="{{ url_for('index') }}" style="color: var(--text-dark); font-size: 20px; text-decoration: none;">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div>
+            <h2 style="font-size: 20px; font-weight: 700;">Study Questions</h2>
+            <p style="color: #666; font-size: 14px;">Select a course to review questions and solutions</p>
+        </div>
+    </div>
+
+    <div class="courses-grid">
+        <a href="{{ url_for('configure_test', course='MTH101', simulator='study') }}" class="course-card">
+            <div class="course-icon" style="background: #ff6b6b;">
+                <i class="fas fa-calculator"></i>
+            </div>
+            <span class="course-name">MTH 101</span>
+            <span class="course-label">Mathematics</span>
+        </a>
+
+        <a href="{{ url_for('configure_test', course='CHM101', simulator='study') }}" class="course-card">
+            <div class="course-icon" style="background: #4ecdc4;">
+                <i class="fas fa-flask"></i>
+            </div>
+            <span class="course-name">CHM 101</span>
+            <span class="course-label">Chemistry</span>
+        </a>
+
+        <a href="{{ url_for('configure_test', course='PHY101', simulator='study') }}" class="course-card">
+            <div class="course-icon" style="background: #45b7d1;">
+                <i class="fas fa-atom"></i>
+            </div>
+            <span class="course-name">PHY 101</span>
+            <span class="course-label">Physics</span>
+        </a>
+
+        <a href="{{ url_for('configure_test', course='STA101', simulator='study') }}" class="course-card">
+            <div class="course-icon" style="background: #96ceb4;">
+                <i class="fas fa-chart-bar"></i>
+            </div>
+            <span class="course-name">STA 101</span>
+            <span class="course-label">Statistics</span>
+        </a>
+
+        <a href="{{ url_for('configure_test', course='BIO101', simulator='study') }}" class="course-card">
+            <div class="course-icon" style="background: #dda15e;">
+                <i class="fas fa-dna"></i>
+            </div>
+            <span class="course-name">BIO 101</span>
+            <span class="course-label">Biology</span>
+        </a>
+
+        <a href="{{ url_for('configure_test', course='COS101', simulator='study') }}" class="course-card">
+            <div class="course-icon" style="background: #bc6c25;">
+                <i class="fas fa-laptop"></i>
+            </div>
+            <span class="course-name">COS 101</span>
+            <span class="course-label">Computer Science</span>
+        </a>
+
+        <a href="{{ url_for('configure_test', course='COS 103', simulator='study') }}" class="course-card">
+            <div class="course-icon" style="background: #6a4c93;">
+                <i class="fas fa-code"></i>
+            </div>
+            <span class="course-name">COS 103</span>
+            <span class="course-label">Computer Science 103</span>
+        </a>
+    </div>
+</div>
+
+<style>
+    .courses-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .course-card {
+        background: white;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.3s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .course-card:active {
+        transform: scale(0.95);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .course-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-size: 24px;
+    }
+
+    .course-name {
+        font-weight: 700;
+        font-size: 14px;
+    }
+
+    .course-label {
+        font-size: 12px;
+        color: #999;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,392 @@
+{% extends "base.html" %}
+
+{% block title %}Configure Test{% endblock %}
+
+{% block content %}
+<div class="config-container">
+    <div class="config-header">
+        <a href="{% if simulator == 'paid' %}{{ url_for('paid_courses') }}{% else %}{{ url_for('free_courses') }}{% endif %}" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+    </div>
+
+    <form action="{{ url_for('quiz') }}" method="get">
+        <input type="hidden" name="simulator" value="{{ simulator }}">
+        
+        <div class="config-section">
+            <div class="section-header">
+                <div class="icon-box blue">
+                    <i class="fas fa-book"></i>
+                </div>
+                <h3>Select Course Code</h3>
+            </div>
+            <div class="form-group">
+                <label id="subject-label">{{ course_full_name }} Course</label>
+                <div class="select-wrapper full">
+                    <select name="course" id="course-select" onchange="updateMaxQuestions()">
+                        <!-- Options will be populated dynamically -->
+                        <option value="{{ course }}">{{ course }}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="config-section">
+            <div class="section-header">
+                <div class="icon-box blue">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <h3>Select Number of Questions</h3>
+            </div>
+            <p class="section-desc">Select the number of questions (Max available: <span id="max-questions">{{ total_questions }}</span>)</p>
+            
+            <div class="config-row">
+                <div class="subject-name" id="display-course-name">{{ course_full_name }}</div>
+                <div class="select-wrapper">
+                    <select name="num_questions" id="num-questions-select">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="config-section">
+            <div class="section-header">
+                <div class="icon-box blue">
+                    <i class="fas fa-sliders-h"></i>
+                </div>
+                <h3>Configure Test</h3>
+            </div>
+            
+            <div class="form-group">
+                <label>Question Type</label>
+                <div class="select-wrapper full">
+                    <select name="question_type">
+                        <option value="all">All</option>
+                        <option value="theory">Theory</option>
+                        <option value="objective" selected>Objective</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        {% if simulator != 'study' %}
+        <div class="config-section">
+            <div class="section-header">
+                <div class="icon-box blue">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <h3>Test Duration</h3>
+            </div>
+            
+            <div class="duration-grid">
+                <div class="form-group">
+                    <label>Hours</label>
+                    <div class="select-wrapper full">
+                        <select name="hours">
+                            <option value="0" selected>0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Minutes</label>
+                    <div class="select-wrapper full">
+                        <select name="minutes">
+                            <option value="0">0</option>
+                            <option value="5">5</option>
+                            <option value="10" selected>10</option>
+                            <option value="15">15</option>
+                            <option value="20">20</option>
+                            <option value="25">25</option>
+                            <option value="30">30</option>
+                            <option value="35">35</option>
+                            <option value="40">40</option>
+                            <option value="45">45</option>
+                            <option value="50">50</option>
+                            <option value="55">55</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <input type="hidden" name="hours" value="0">
+        <input type="hidden" name="minutes" value="0">
+        {% endif %}
+
+        <div class="action-footer">
+            <button type="submit" class="btn-proceed">Proceed</button>
+        </div>
+    </form>
+</div>
+
+<style>
+    .config-container {
+        padding: 20px;
+        background-color: #fff;
+        min-height: calc(100vh - 70px);
+    }
+
+    .config-header {
+        margin-bottom: 20px;
+    }
+
+    .back-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 1px solid #eee;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: var(--text-dark);
+        text-decoration: none;
+        background: white;
+    }
+
+    .config-section {
+        margin-bottom: 30px;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 10px;
+    }
+
+    .section-header h3 {
+        font-size: 18px;
+        font-weight: 700;
+        color: #000;
+    }
+
+    .icon-box {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-size: 14px;
+    }
+
+    .icon-box.blue { background-color: var(--primary-blue); }
+
+    .section-desc {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 15px;
+    }
+
+    .config-row {
+        display: flex;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        overflow: hidden;
+        background: white;
+    }
+
+    .subject-name {
+        flex: 1;
+        padding: 12px 15px;
+        border-right: 1px solid #eee;
+        font-size: 15px;
+        color: #333;
+    }
+
+    .select-wrapper {
+        width: 100px;
+        position: relative;
+    }
+
+    .select-wrapper.full {
+        width: 100%;
+    }
+
+    .select-wrapper select {
+        width: 100%;
+        padding: 12px 15px;
+        border: none;
+        background: transparent;
+        appearance: none;
+        font-size: 15px;
+        cursor: pointer;
+        color: #333;
+    }
+
+    .select-wrapper::after {
+        content: '\f0d7';
+        font-family: 'Font Awesome 6 Free';
+        font-weight: 900;
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        color: #999;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #666;
+    }
+
+    .duration-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+
+    .select-wrapper.full select {
+        border: 1px solid #eee;
+        border-radius: 12px;
+        background: white;
+    }
+
+    .action-footer {
+        margin-top: 40px;
+        margin-bottom: 20px;
+    }
+
+    .btn-proceed {
+        width: 100%;
+        padding: 18px;
+        background-color: var(--primary-blue);
+        color: white;
+        border: none;
+        border-radius: 15px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+
+    .btn-proceed:active {
+        opacity: 0.8;
+    }
+</style>
+
+<script>
+    const courseNames = {
+        'MTH': 'Mathematics',
+        'CHM': 'Chemistry',
+        'PHY': 'Physics',
+        'STA': 'Statistics',
+        'BIO': 'Biology',
+        'COS': 'Computer Science'
+    };
+
+    function updateMaxQuestions() {
+        const course = document.getElementById('course-select').value;
+        const displayCourseName = document.getElementById('display-course-name');
+        const maxQuestionsSpan = document.getElementById('max-questions');
+        const numQuestionsSelect = document.getElementById('num-questions-select');
+        
+        // Update display name
+        displayCourseName.innerText = course;
+        
+        const simulator = "{{ simulator }}";
+        
+        // If free simulator, restrict timer options
+        if (simulator === 'free') {
+            const hoursSelect = document.querySelector('select[name="hours"]');
+            const minutesSelect = document.querySelector('select[name="minutes"]');
+            
+            if (hoursSelect && minutesSelect) {
+                // Set hours to 0 and disable
+                hoursSelect.value = "0";
+                Array.from(hoursSelect.options).forEach(opt => {
+                    if (opt.value !== "0") opt.disabled = true;
+                });
+                
+                // Set minutes to 10 and disable others > 10
+                minutesSelect.value = "10";
+                Array.from(minutesSelect.options).forEach(opt => {
+                    if (parseInt(opt.value) > 10) opt.disabled = true;
+                });
+            }
+        }
+        // Fetch total questions for the selected course
+        fetch(`/api/course-info?course=${encodeURIComponent(course)}&simulator=${simulator}`)
+            .then(response => response.json())
+            .then(data => {
+                const total = data.total_questions;
+                maxQuestionsSpan.innerText = total;
+                
+                // Update options in num_questions select
+                const currentVal = numQuestionsSelect.value;
+                numQuestionsSelect.innerHTML = '';
+                const standardOptions = (simulator === 'free') ? [5, 10] : [5, 10, 15, 20, 30, 40, 50, 100];
+                
+                let foundMatch = false;
+                standardOptions.forEach(opt => {
+                    if (opt <= total) {
+                        const option = document.createElement('option');
+                        option.value = opt;
+                        option.text = opt;
+                        if (opt == currentVal) {
+                            option.selected = true;
+                            foundMatch = true;
+                        }
+                        numQuestionsSelect.appendChild(option);
+                    }
+                });
+                
+                // If no standard option was selected, select the closest one or 10
+                if (!foundMatch && numQuestionsSelect.options.length > 0) {
+                    numQuestionsSelect.selectedIndex = Math.min(1, numQuestionsSelect.options.length - 1);
+                }
+                
+                // Add "All" option if not already there
+                const isStandard = standardOptions.includes(total);
+                if (total > 0 && !isStandard) {
+                    const option = document.createElement('option');
+                    option.value = total;
+                    option.text = `All (${total})`;
+                    if (total == currentVal) option.selected = true;
+                    numQuestionsSelect.appendChild(option);
+                }
+            });
+    }
+
+    function loadAvailableCodes() {
+        const initialCourse = "{{ course }}";
+        const subjectPrefix = initialCourse.substring(0, 3);
+        const courseSelect = document.getElementById('course-select');
+        
+        fetch(`/api/available-codes?subject=${subjectPrefix}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.codes && data.codes.length > 0) {
+                    courseSelect.innerHTML = '';
+                    data.codes.forEach(code => {
+                        const option = document.createElement('option');
+                        option.value = code;
+                        option.text = code;
+                        if (code === initialCourse) {
+                            option.selected = true;
+                        }
+                        courseSelect.appendChild(option);
+                    });
+                    updateMaxQuestions();
+                }
+            });
+    }
+    
+    // Initialize on load
+    window.onload = loadAvailableCodes;
+</script>
+{% endblock %}
