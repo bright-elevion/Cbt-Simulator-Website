@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Flask CBT Web Application
 
 This is a simple Computer-Based Test (CBT) application built with Flask and PostgreSql.
@@ -25,3 +26,7 @@ This is a simple Computer-Based Test (CBT) application built with Flask and Post
 - Clean and responsive UI with CSS gradients.
 - Frontend JavaScript timer (30 minutes).
 - Question-by-question display.
+=======
+# PrepCampus
+A simple university cbt past question simulator
+>>>>>>> e79a135a108fecc1374c63b594a918ff43193348
