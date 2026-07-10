@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}Configure Test{% endblock %}
+
+{% block content %}
+<div class="config-container">
+    <div class="config-header">
+    <a href="{% if simulator == 'paid' %}{{ url_for('paid_courses') }}{% elif simulator == 'study' %}{{ url_for('study_courses') }}{% else %}{{ url_for('free_courses') }}{% endif %}" class="back-btn">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+</div>
+
+
+    <form action="{{ url_for('quiz') }}" method="get">
+        <input type="hidden" name="simulator" value="{{ simulator }}">
+        
+        <div class="config-section">
+            <div class="section-header">
+                <div class="icon-box blue">
+                    <i class="fas fa-book"></i>
+                </div>
+                <h3>Select Course Code</h3>
+            </div>
+            <div class="form-group">
+                <label id="subject-label">{{ course_full_name }}</label>
+                <div class="select-wrapper full">
+                    <select name="course" id="course-select" onchange="loadTopics()">
+                        <!-- Options will be populated dynamically -->
+                        <option value="{{ course }}">{{ course }}</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group" id="topic-group">
+                <label>Select Topic</label>
+                <div class="select-wrapper full">
+                    <select name="topic" id="topic-select" onchange="updateMaxQuestions()">
+                        <option value="All Topics">All Topics</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="config-section">
+            <div class="section-header">
+                <div class="icon-box blue">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <h3>Select Number of Questions</h3>
+            </div>
+            <p class="section-desc">Select the number of questions (Max available: <span id="max-questions">{{ total_questions }}</span>)</p>
+            
+            <div class="config-row">
+                <div class="subject-name" id="display-course-name">{{ course_full_name }}</div>
+                <div class="select-wrapper">
+                    <select name="num_questions" id="num-questions-select">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="config-section">
+            <div class="section-header">
+                <div class="icon-box blue">
+                    <i class="fas fa-sliders-h"></i>
+                </div>
+                <h3>Configure Test</h3>
+            </div>
+            
+            <div class="form-group">
+                <label>Question Type</label>
+                <div class="select-wrapper full">
+                    <select name="question_type">
+                        <option value="all">All</option>
+                        <option value="theory">Theory</option>
+                        <option value="objective" selected>Objective</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        {% if simulator != 'study' %}
+        <div class="config-section">
+            <div class="section-header">
+                <div class="icon-box blue">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <h3>Test Duration</h3>
+            </div>
+            
+            <div class="duration-grid">
+                <div class="form-group">
+                    <label>Hours</label>
+                    <div class="select-wrapper full">
+                        <select name="hours">
+                            <option value="0" selected>0</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Minutes</label>
+                    <div class="select-wrapper full">
+                        <select name="minutes">
+                            <option value="0">0</option>
+                            <option value="5">5</option>
+                            <option value="10" selected>10</option>
+                            <option value="15">15</option>
+                            <option value="20">20</option>
+                            <option value="25">25</option>
+                            <option value="30">30</option>
+                            <option value="35">35</option>
+                            <option value="40">40</option>
+                            <option value="45">45</option>
+                            <option value="50">50</option>
+                            <option value="55">55</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <input type="hidden" name="hours" value="0">
+        <input type="hidden" name="minutes" value="0">
+        {% endif %}
+
+        <div class="action-footer">
+            <button type="submit" class="btn-proceed">Proceed</button>
+        </div>
+    </form>
+</div>
+
+
+<script>
+    const courseNames = {
+        'MTH': 'Mathematics',
+        'CHM': 'Chemistry',
+        'PHY': 'Physics',
+        'STA': 'Statistics',
+        'BIO': 'Biology',
+        'COS103': 'Computer Science II',
+        'COS101': 'Computer Science',
+        'GST': 'Communication in English'
+    };
+
+    function updateMaxQuestions() {
+        const course = document.getElementById('course-select').value;
+        const topic = document.getElementById('topic-select').value;
+        const displayCourseName = document.getElementById('display-course-name');
+        const maxQuestionsSpan = document.getElementById('max-questions');
+        const numQuestionsSelect = document.getElementById('num-questions-select');
+    
+        displayCourseName.innerText = topic === "All Topics" ? course : `${course} - ${topic}`;
+        const simulator = "{{ simulator }}";
+
+        fetch(`/api/course-info?course=${encodeURIComponent(course)}&topic=${encodeURIComponent(topic)}&simulator=${simulator}`)
+        .then(response => response.json())
+        .then(data => {
+            const total = data.total_questions;
+            maxQuestionsSpan.innerText = total;
+            
+            const currentVal = numQuestionsSelect.value;
+            numQuestionsSelect.innerHTML = '';
+            
+            const standardOptions = (simulator === 'free') ? [5, 10] : [5, 10, 15, 20, 25, 30, 40, 50, 100];
+            
+            let foundMatch = false;
+            standardOptions.forEach(opt => {
+                if (opt <= total) {
+                    const option = document.createElement('option');
+                    option.value = opt;
+                    option.text = opt;
+                    if (opt == currentVal) {
+                        option.selected = true;
+                        foundMatch = true;
+                    }
+                    numQuestionsSelect.appendChild(option);
+                }
+            });
+            
+            if (!foundMatch && numQuestionsSelect.options.length > 0) {
+                numQuestionsSelect.selectedIndex = Math.min(1, numQuestionsSelect.options.length - 1);
+            }
+            
+            const isStandard = standardOptions.includes(total);
+            if (total > 0 && !isStandard) {
+                const option = document.createElement('option');
+                option.value = total;
+                option.text = `All (${total})`;
+                if (total == currentVal) option.selected = true;
+                numQuestionsSelect.appendChild(option);
+            }
+        });
+    }
+
+    function loadTopics() {
+        const course = document.getElementById('course-select').value;
+        const topicSelect = document.getElementById('topic-select');
+        
+        fetch(`/api/topics?course=${encodeURIComponent(course)}`)
+            .then(response => response.json())
+            .then(data => {
+                topicSelect.innerHTML = '<option value="All Topics">All Topics</option>';
+                if (data.topics) {
+                    data.topics.forEach(topic => {
+                        const option = document.createElement('option');
+                        option.value = topic;
+                        option.text = topic;
+                        topicSelect.appendChild(option);
+                    });
+                }
+                updateMaxQuestions();
+            });
+    }
+
+    function loadAvailableCodes() {
+        const initialCourse = "{{ course }}";
+        const subjectPrefix = initialCourse.substring(0, 3);
+        const courseSelect = document.getElementById('course-select');
+        
+        fetch(`/api/available-codes?subject=${subjectPrefix}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.codes && data.codes.length > 0) {
+                    courseSelect.innerHTML = '';
+                    data.codes.forEach(code => {
+                        const option = document.createElement('option');
+                        option.value = code;
+                        option.text = code;
+                        if (code === initialCourse) {
+                            option.selected = true;
+                        }
+                        courseSelect.appendChild(option);
+                    });
+                    loadTopics();
+                }
+            });
+    }
+    
+    // Initialize on load
+    window.onload = loadAvailableCodes;
+</script>                                      
+{% endblock %}
+                                                                          

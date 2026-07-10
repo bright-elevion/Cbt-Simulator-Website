@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Leaderboard - PrepCampus CBT{% endblock %}
+
+{% block content %}
+<div class="leaderboard-container">
+    <div class="leaderboard-header">
+        <i class="fas fa-trophy trophy-icon"></i>
+        <h2>Leaderboard</h2>
+        <p>Top performers across all courses</p>
+    </div>
+
+    <div class="leaderboard-list">
+        {% if top_scores %}
+            {% for score in top_scores %}
+            <div class="leaderboard-item {% if session.get('user_id') == score.user_id %}current-user{% endif %}">
+                <div class="rank">{{ loop.index }}</div>
+                <div class="user-info">
+                    <span class="username">{{ score.username }}</span>
+                    <span class="course-code">{{ score.course_code }}</span>
+                </div>
+                <div class="score-info">
+                    <span class="score-val">{{ score.score }}/{{ score.total }}</span>
+                    <span class="percentage">{{ (score.score / score.total * 100) | round(1) }}%</span>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <p>No scores recorded yet. Be the first to top the board!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

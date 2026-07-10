@@ -1,0 +1,7 @@
+flask
+gunicorn
+authlib
+python-dotenv
+requests
+Werkzeug
+psycopg2-binary

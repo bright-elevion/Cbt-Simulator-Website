@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Payment - PrepCampus{% endblock %}
+
+{% block content %}
+<div class="header university-header">
+    <div class="university-info">
+        <a href="{{ url_for('index') }}" class="back-button"><i class="fas fa-arrow-left"></i></a>
+        <h1 class="university-name">Payment</h1>
+    </div>
+</div>
+
+<main class="content">
+    <div class="payment-container">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-warning">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        
+        <div class="payment-details">
+            <h2>Unlock Paid Simulator</h2>
+            <p>Get access to the full PrepCampus CBT Simulator with exact exam settings.</p>
+            <div class="price-tag">₦500</div>
+            
+            <button type="button" class="btn btn-success" id="payButton" onclick="payWithPaystack()">
+                Pay with Paystack
+            </button>
+            
+            <p class="payment-note">Secure payment processed by Paystack.</p>
+        </div>
+    </div>
+</main>
+
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script>
+    const payButton = document.getElementById('payButton');
+    
+    function payWithPaystack() {
+        let handler = PaystackPop.setup({
+            key: '{{ paystack_public_key }}',
+            email: '{{ email }}',
+            amount: 500 * 100, // Amount in kobo
+            currency: 'NGN',
+            callback: function(response) {
+                // Payment successful
+                verifyPayment(response.reference);
+            },
+            onClose: function() {
+                alert('Payment window closed.');
+            }
+        });
+        handler.openIframe();
+    }
+
+    function verifyPayment(reference) {
+        payButton.disabled = true;
+        payButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+        
+        fetch(`/verify-payment/${reference}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.href = "{{ url_for('profile') }}";
+                } else {
+                    alert('Payment verification failed: ' + (data.message || 'Please contact support.'));
+                    payButton.disabled = false;
+                    payButton.innerHTML = 'Pay with Paystack';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred during verification.');
+                payButton.disabled = false;
+                payButton.innerHTML = 'Pay with Paystack';
+            });
+    }
+</script>
+
+{% endblock %}

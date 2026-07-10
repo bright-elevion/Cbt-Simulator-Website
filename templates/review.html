@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Review - {{ course }}{% endblock %}
+
+{% block content %}
+<div class="review-container">
+    <a href="{{ url_for('index') }}" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+    
+    <div class="section-title" style="margin-top: 40px;">
+        <h2>Review: {{ course }}</h2>
+    </div>
+
+    {% for item in review_data %}
+    <div class="review-item">
+        <div class="review-question">
+            {{ loop.index }}. {{ item.question_text }}
+        </div>
+        
+        <div class="review-options">
+            <div class="review-option {% if item.correct_answer == 'A' %}correct{% elif item.user_answer == 'A' %}incorrect{% endif %}">
+                A. {{ item.option_a }}
+            </div>
+            <div class="review-option {% if item.correct_answer == 'B' %}correct{% elif item.user_answer == 'B' %}incorrect{% endif %}">
+                B. {{ item.option_b }}
+            </div>
+            <div class="review-option {% if item.correct_answer == 'C' %}correct{% elif item.user_answer == 'C' %}incorrect{% endif %}">
+                C. {{ item.option_c }}
+            </div>
+            <div class="review-option {% if item.correct_answer == 'D' %}correct{% elif item.user_answer == 'D' %}incorrect{% endif %}">
+                D. {{ item.option_d }}
+            </div>
+        </div>
+
+        <div class="solution-box" id="solution-{{ item.id }}" style="display: none;">
+            <div class="solution-title">Step-by-Step Solution:</div>
+            <div class="solution-text">{{ item.solution }}</div>
+        </div>
+        
+        <button class="btn btn-next" style="margin-top: 15px; width: auto; padding: 8px 15px;" onclick="toggleSolution('{{ item.id }}')">
+            Check Step-by-Step
+        </button>
+    </div>
+    {% endfor %}
+
+    <div style="margin-bottom: 80px;">
+        <a href="{{ url_for('index') }}" class="btn btn-next" style="display: block; text-align: center; text-decoration: none;">Back to Home</a>
+    </div>
+</div>
+
+<script>
+function toggleSolution(id) {
+    const box = document.getElementById('solution-' + id);
+    if (box.style.display === 'none') {
+        box.style.display = 'block';
+    } else {
+        box.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}

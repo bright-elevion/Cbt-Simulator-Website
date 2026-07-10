@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Login - PrepCampus{% endblock %}
+
+{% block content %}
+<div class="header university-header">
+    <div class="university-info">
+        <a href="{{ url_for('index') }}" class="back-button"><i class="fas fa-arrow-left"></i></a>
+        <h1 class="university-name">Login</h1>
+    </div>
+</div>
+
+<main class="content">
+    <div class="auth-container">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-warning">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        
+        <div class="login-options">
+            <h2>Hey, Welcome</h2>
+            <p>Please sign in to continue</p>
+            
+            <form method="POST" class="auth-form">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" name="email" id="email" class="form-control" placeholder="Enter email address" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" name="password" id="password" class="form-control" placeholder="e.g xxxxxxxx" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+
+            <p class="auth-switch">Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+        </div>
+    </div>
+</main>
+
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - PrepCampus CBT{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="profile-pic-wrapper">
+            {% if user.profile_picture %}
+                <img src="{{ url_for('static', filename='uploads/' + user.profile_picture) }}" alt="Profile Picture" id="profile-img">
+            {% else %}
+                <div class="profile-placeholder">
+                    <i class="fas fa-user"></i>
+                </div>
+            {% endif %}
+            <form id="upload-form" action="{{ url_for('upload_profile_picture') }}" method="POST" enctype="multipart/form-data">
+                <label for="profile_pic" class="upload-btn">
+                    <i class="fas fa-camera"></i>
+                </label>
+                <input type="file" id="profile_pic" name="profile_pic" style="display: none;" onchange="document.getElementById('upload-form').submit();">
+            </form>
+        </div>
+        <h2 class="username">{{ user.username }}</h2>
+        <p class="user-status">{{ user.status }}</p>
+    </div>
+
+    <div class="profile-info">
+        <div class="info-item">
+            <span class="info-label">Email</span>
+            <span class="info-value">{{ user.email }}</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">Member Since</span>
+            <span class="info-value">{{ user.created_at.strftime('%Y-%m-%d') if user.created_at else 'N/A' }}</span>
+        </div>
+    </div>
+
+    <div class="profile-actions">
+        <button class="action-btn" onclick="document.getElementById('feedback-modal').style.display='block'">
+            <i class="fas fa-comment-alt"></i>
+            <span>Send Feedback</span>
+        </button>
+        <a href="{{ url_for('logout') }}" class="action-btn logout-btn">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </a>
+    </div>
+</div>
+
+<!-- Feedback Modal -->
+<div id="feedback-modal" class="modal">
+    <div class="modal-content">
+        <h3>Send Feedback</h3>
+        <form action="{{ url_for('send_feedback') }}" method="POST">
+            <textarea name="message" placeholder="Tell us what you think..." required></textarea>
+            <div class="modal-btns">
+                <button type="button" class="btn btn-prev" onclick="document.getElementById('feedback-modal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn btn-next">Send</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
