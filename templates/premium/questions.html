@@ -1,0 +1,522 @@
+{% extends "base.html" %}
+
+{% block title %}AI Question Generator - PrepCampus Premium{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='premium.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="ai-page premium-ai-questions">
+    <div class="ai-page-heading">
+        <a href="{{ url_for('premium') }}" class="premium-back-link">
+            <i class="fas fa-arrow-left" aria-hidden="true"></i> Premium workspace
+        </a>
+        <h1>Build a focused practice set.</h1>
+        <p>Choose your focus, then work through the questions in the familiar PrepCampus study format.</p>
+    </div>
+
+    <section class="ai-card ai-generator-card" aria-labelledby="generator-title">
+        <div class="premium-section-heading">
+            <div>
+                <h2 id="generator-title">Practice set settings</h2>
+                <p>We check unseen questions first, then create only what your set still needs.</p>
+            </div>
+            <span class="premium-badge">
+                <i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i> Premium AI
+            </span>
+        </div>
+
+        <form id="questionForm" class="ai-generator-form">
+            <div class="ai-generator-field">
+                <label for="course">Course</label>
+                <input type="text" id="course" placeholder="MTH101 or MTH 101" autocomplete="off" required>
+                <small class="chat-meta">Use a listed course code or enter another course.</small>
+            </div>
+            <div class="ai-generator-field">
+                <label for="topic">Topic</label>
+                <input type="text" id="topic" placeholder="Set Theory" autocomplete="off" required>
+            </div>
+            <div class="ai-generator-field">
+                <label for="difficulty">Difficulty</label>
+                <select id="difficulty">
+                    <option value="Easy">Easy</option>
+                    <option value="Medium" selected>Medium</option>
+                    <option value="Hard">Hard</option>
+                </select>
+            </div>
+            <div class="ai-generator-field">
+                <label for="count">Questions</label>
+                <select id="count">
+                    <option value="5">5</option>
+                    <option value="10" selected>10</option>
+                    <option value="20">20</option>
+                    <option value="30">30</option>
+                </select>
+            </div>
+            <div class="ai-generator-field wide">
+                <label for="question_type">Question type</label>
+                <select id="question_type">
+                    <option value="mcq">Multiple choice</option>
+                    <option value="theory">Theory</option>
+                </select>
+            </div>
+            <button id="generateBtn" class="premium-button ai-generator-submit" type="submit">
+                <i class="fas fa-sparkles" aria-hidden="true"></i> Create practice set
+            </button>
+        </form>
+    </section>
+
+    <div class="ai-usage-panel" role="status">
+        <div>
+            <strong>Daily AI allowance</strong>
+            <span id="usageText">{{ ai_usage.remaining }} AI-generated questions remaining today ({{ ai_usage.limit }} available daily).</span>
+        </div>
+    </div>
+
+    <div id="generatorStatus" class="ai-empty" role="status" aria-live="polite">
+        Your practice set will appear here in CBT mode.
+    </div>
+
+    <section id="practiceWorkspace" class="premium-practice-workspace" hidden aria-labelledby="practice-title">
+        <div class="practice-workspace-heading">
+            <div>
+                <span class="premium-eyebrow"><i class="fas fa-graduation-cap" aria-hidden="true"></i> Study session</span>
+                <h2 id="practice-title">Practice mode</h2>
+                <p id="practiceMeta">Work through each question, check your answer, and review the explanation before moving on.</p>
+            </div>
+            <button type="button" id="newSetBtn" class="premium-button secondary">
+                <i class="fas fa-rotate" aria-hidden="true"></i> New set
+            </button>
+        </div>
+
+        <div class="quiz-container premium-quiz-container">
+            <div class="timer-bar">
+                <span id="quizCourseLabel">Premium practice</span>
+                <span id="quizTopicLabel">Study mode</span>
+            </div>
+
+            <div class="progress-container" aria-label="Practice progress">
+                <div id="progress" class="progress-bar"></div>
+            </div>
+
+            <div class="question-nav-container">
+                <div class="nav-header">
+                    <span class="question-count-badge"><span id="totalQuestionsBadge">0</span> Questions</span>
+                    <span class="chat-meta">Question <span id="currentQuestion">1</span> of <span id="totalQuestions">0</span></span>
+                </div>
+                <div id="questionNumbers" class="question-numbers-grid" aria-label="Question navigation"></div>
+            </div>
+
+            <div class="question-box premium-question-box">
+                <div class="premium-question-topline">
+                    <span id="questionSource" class="premium-badge is-muted">Practice question</span>
+                    <span id="questionDifficulty" class="chat-meta">Medium</span>
+                </div>
+                <h3 id="questionText">Loading question...</h3>
+
+                <div id="optionsContainer" class="options-list"></div>
+
+                <div id="theoryAnswerWrap" class="theory-answer-wrap" hidden>
+                    <label for="theoryAnswer">Your response</label>
+                    <textarea id="theoryAnswer" rows="5" placeholder="Write your answer, then check it against the explanation."></textarea>
+                </div>
+
+                <div id="feedbackBox" class="solution-box premium-feedback-box" hidden>
+                    <div id="feedbackStatus" class="feedback-status"></div>
+                    <div class="solution-title">Explanation</div>
+                    <div id="solutionText" class="solution-text"></div>
+                </div>
+            </div>
+
+            <div class="btn-group premium-quiz-actions">
+                <button type="button" id="prevBtn" class="btn btn-prev" hidden>Previous</button>
+                <button type="button" id="checkBtn" class="btn btn-next">Check answer</button>
+                <button type="button" id="nextBtn" class="btn btn-next">Next question</button>
+            </div>
+
+            <div id="practiceSummary" class="practice-summary" hidden>
+                <div class="summary-icon"><i class="fas fa-chart-line" aria-hidden="true"></i></div>
+                <div>
+                    <h3>Practice set complete</h3>
+                    <p id="summaryText">You have completed this practice set.</p>
+                </div>
+                <button type="button" id="summaryNewSetBtn" class="premium-button">Create another set</button>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(() => {
+    const form = document.getElementById('questionForm');
+    const button = document.getElementById('generateBtn');
+    const status = document.getElementById('generatorStatus');
+    const usageText = document.getElementById('usageText');
+    const workspace = document.getElementById('practiceWorkspace');
+    const newSetBtn = document.getElementById('newSetBtn');
+    const summaryNewSetBtn = document.getElementById('summaryNewSetBtn');
+
+    const questionText = document.getElementById('questionText');
+    const questionSource = document.getElementById('questionSource');
+    const questionDifficulty = document.getElementById('questionDifficulty');
+    const courseLabel = document.getElementById('quizCourseLabel');
+    const topicLabel = document.getElementById('quizTopicLabel');
+    const optionsContainer = document.getElementById('optionsContainer');
+    const theoryAnswerWrap = document.getElementById('theoryAnswerWrap');
+    const theoryAnswer = document.getElementById('theoryAnswer');
+    const feedbackBox = document.getElementById('feedbackBox');
+    const feedbackStatus = document.getElementById('feedbackStatus');
+    const solutionText = document.getElementById('solutionText');
+    const practiceSummary = document.getElementById('practiceSummary');
+    const summaryText = document.getElementById('summaryText');
+    const questionNumbers = document.getElementById('questionNumbers');
+    const progress = document.getElementById('progress');
+    const currentQuestion = document.getElementById('currentQuestion');
+    const totalQuestions = document.getElementById('totalQuestions');
+    const totalQuestionsBadge = document.getElementById('totalQuestionsBadge');
+    const prevBtn = document.getElementById('prevBtn');
+    const checkBtn = document.getElementById('checkBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    let questions = [];
+    let currentIndex = 0;
+    let answers = {};
+    let questionTimes = {};
+    let questionStartedAt = null;
+    let checked = new Set();
+    let score = 0;
+
+    const updateUsage = (usage) => {
+        if (!usage || !usageText) return;
+        const remaining = Number(usage.remaining_today ?? usage.remaining ?? 0);
+        const limit = Number(usage.daily_limit ?? usage.limit ?? 0);
+        usageText.textContent = remaining <= 0
+            ? "Today's AI question allowance is complete. It resets tomorrow."
+            : `${remaining} AI-generated question${remaining === 1 ? '' : 's'} remaining today (${limit} available daily).`;
+    };
+
+    const getQuestionText = (question) => (
+        question.question || question.question_text || 'Untitled question'
+    );
+
+    const getOptions = (question) => [
+        ['A', question.option_a],
+        ['B', question.option_b],
+        ['C', question.option_c],
+        ['D', question.option_d]
+    ].filter(([, value]) => value);
+
+    const selectedAnswer = () => {
+        const selected = optionsContainer.querySelector('input[name="practice-answer"]:checked');
+        return selected ? selected.value : '';
+    };
+
+    const saveCurrentAnswer = () => {
+        const question = questions[currentIndex];
+        if (!question) return;
+        if (getOptions(question).length) {
+            const answer = selectedAnswer();
+            if (answer) answers[currentIndex] = answer;
+        } else if (theoryAnswer.value.trim()) {
+            answers[currentIndex] = theoryAnswer.value.trim();
+        }
+    };
+
+    const recordCurrentTime = () => {
+        if (questionStartedAt === null) return;
+        const elapsed = Math.max(0, (performance.now() - questionStartedAt) / 1000);
+        questionTimes[currentIndex] = (questionTimes[currentIndex] || 0) + elapsed;
+        questionStartedAt = null;
+    };
+
+    const updateNavigation = () => {
+        questionNumbers.querySelectorAll('.q-num').forEach((element, index) => {
+            element.classList.toggle('active', index === currentIndex);
+            element.classList.toggle('answered', Boolean(answers[index]));
+            element.classList.toggle('checked', checked.has(index));
+        });
+    };
+
+    const showFeedback = () => {
+        const question = questions[currentIndex];
+        if (!question) return;
+
+        const options = getOptions(question);
+        const answer = answers[currentIndex] || '';
+        const correct = String(question.correct_option || '').toUpperCase();
+        const isTheory = options.length === 0;
+
+        optionsContainer.querySelectorAll('.option-item').forEach((item) => {
+            const option = item.dataset.option;
+            const input = item.querySelector('input');
+            input.disabled = true;
+            item.classList.remove('correct', 'incorrect', 'selected');
+            if (option === correct) item.classList.add('correct');
+            if (option === answer && answer !== correct) item.classList.add('incorrect');
+        });
+
+        if (isTheory) {
+            theoryAnswer.disabled = true;
+            feedbackStatus.textContent = answer
+                ? 'Response recorded. Compare your answer with the explanation below.'
+                : 'No response recorded. Review the explanation below.';
+            feedbackStatus.className = 'feedback-status neutral';
+        } else if (!answer) {
+            feedbackStatus.textContent = `Not answered. The correct answer is ${correct}.`;
+            feedbackStatus.className = 'feedback-status neutral';
+        } else if (answer === correct) {
+            feedbackStatus.textContent = 'Correct. Keep building on this understanding.';
+            feedbackStatus.className = 'feedback-status correct';
+        } else {
+            feedbackStatus.textContent = `Not quite. The correct answer is ${correct}.`;
+            feedbackStatus.className = 'feedback-status incorrect';
+        }
+
+        solutionText.textContent = question.solution || 'Review the question and connect it to the topic you selected.';
+        feedbackBox.hidden = false;
+        checkBtn.hidden = true;
+        checked.add(currentIndex);
+        updateNavigation();
+    };
+
+    const renderQuestionNumbers = () => {
+        questionNumbers.innerHTML = '';
+        questions.forEach((_, index) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'q-num';
+            button.textContent = index + 1;
+            button.setAttribute('aria-label', `Go to question ${index + 1}`);
+            button.addEventListener('click', () => {
+                saveCurrentAnswer();
+                recordCurrentTime();
+                currentIndex = index;
+                renderQuestion();
+            });
+            questionNumbers.appendChild(button);
+        });
+    };
+
+    const renderQuestion = () => {
+        const question = questions[currentIndex];
+        if (!question) return;
+
+        questionStartedAt = performance.now();
+        const options = getOptions(question);
+        const answer = answers[currentIndex] || '';
+        const isTheory = options.length === 0;
+
+        questionText.textContent = getQuestionText(question);
+        questionSource.textContent = question.source === 'database'
+            ? 'From your question bank'
+            : 'New practice question';
+        questionDifficulty.textContent = document.getElementById('difficulty').value;
+        currentQuestion.textContent = currentIndex + 1;
+        totalQuestions.textContent = questions.length;
+        totalQuestionsBadge.textContent = questions.length;
+        progress.style.width = `${((currentIndex + 1) / questions.length) * 100}%`;
+
+        optionsContainer.innerHTML = '';
+        theoryAnswerWrap.hidden = !isTheory;
+        theoryAnswer.disabled = false;
+        theoryAnswer.value = isTheory ? (answer || '') : '';
+
+        options.forEach(([letter, text]) => {
+            const label = document.createElement('label');
+            label.className = 'option-item';
+            label.dataset.option = letter;
+            const input = document.createElement('input');
+            input.type = 'radio';
+            input.name = 'practice-answer';
+            input.value = letter;
+
+            const textWrap = document.createElement('span');
+            const letterMark = document.createElement('strong');
+            letterMark.textContent = `${letter}.`;
+            textWrap.append(letterMark, document.createTextNode(` ${text}`));
+            label.append(input, textWrap);
+            input.checked = answer === letter;
+            label.addEventListener('click', () => {
+                if (input.disabled) return;
+                optionsContainer.querySelectorAll('.option-item').forEach((item) => item.classList.remove('selected'));
+                label.classList.add('selected');
+            });
+            if (answer === letter) label.classList.add('selected');
+            optionsContainer.appendChild(label);
+        });
+
+        feedbackBox.hidden = !checked.has(currentIndex);
+        checkBtn.hidden = checked.has(currentIndex);
+        if (checked.has(currentIndex)) showFeedback();
+
+        prevBtn.hidden = currentIndex === 0;
+        nextBtn.textContent = currentIndex === questions.length - 1 ? 'Finish practice' : 'Next question';
+        nextBtn.disabled = false;
+        updateNavigation();
+    };
+
+    const finishPractice = async () => {
+        saveCurrentAnswer();
+        score = questions.reduce((total, question, index) => {
+            const correct = String(question.correct_option || '').toUpperCase();
+            return total + (correct && answers[index] === correct ? 1 : 0);
+        }, 0);
+        summaryText.textContent = `You answered ${score} of ${questions.length} multiple-choice question${questions.length === 1 ? '' : 's'} correctly. Review the explanations above, then create another set whenever you are ready.`;
+        practiceSummary.hidden = false;
+
+        const completedAnswers = questions
+            .map((question, index) => ({
+                question_id: question.id,
+                answer: answers[index] || '',
+                time_spent_seconds: Math.round((questionTimes[index] || 0) * 10) / 10
+            }))
+            .filter((item) => item.question_id);
+        try {
+            const historyResponse = await fetch('{{ url_for("record_ai_attempts") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({
+                    course: document.getElementById('course').value.trim(),
+                    topic: document.getElementById('topic').value.trim(),
+                    answers: completedAnswers
+                })
+            });
+            const historyData = await historyResponse.json().catch(() => ({}));
+            if (!historyResponse.ok || historyData.success === false) {
+                throw new Error(historyData.error || 'History was not saved');
+            }
+        } catch (error) {
+            status.className = 'ai-error';
+            status.textContent = 'Your score is ready, but we could not save the review history. You can continue practising and try again next session.';
+        }
+        nextBtn.hidden = true;
+        checkBtn.hidden = true;
+        prevBtn.hidden = true;
+        practiceSummary.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+
+    const resetWorkspace = () => {
+        workspace.hidden = true;
+        practiceSummary.hidden = true;
+        nextBtn.hidden = false;
+        answers = {};
+        checked = new Set();
+            questions = [];
+            questionTimes = {};
+            questionStartedAt = null;
+            currentIndex = 0;
+        score = 0;
+        status.className = 'ai-empty';
+        status.textContent = 'Your practice set will appear here in CBT mode.';
+        document.getElementById('course').focus();
+    };
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const course = document.getElementById('course').value.trim();
+        const topic = document.getElementById('topic').value.trim();
+        if (!course || !topic) {
+            status.className = 'ai-error';
+            status.textContent = 'Please enter both a course and a topic to build your practice set.';
+            return;
+        }
+
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Preparing set…';
+        status.className = 'ai-empty';
+        status.textContent = 'Checking unseen questions before preparing your CBT practice set…';
+        workspace.hidden = true;
+
+        try {
+            const response = await fetch('{{ url_for("generate_ai_questions") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({
+                    course,
+                    topic,
+                    difficulty: document.getElementById('difficulty').value,
+                    count: Number(document.getElementById('count').value),
+                    question_type: document.getElementById('question_type').value
+                })
+            });
+            const data = await response.json().catch(() => ({}));
+            updateUsage(data.usage);
+            if (!response.ok || data.success === false || !Array.isArray(data.questions)) {
+                throw new Error(data.error || 'We could not prepare your practice set right now.');
+            }
+
+            questions = data.questions;
+            currentIndex = 0;
+            answers = {};
+            questionTimes = {};
+            questionStartedAt = null;
+            checked = new Set();
+            courseLabel.textContent = course;
+            topicLabel.textContent = `${topic} · Study mode`;
+            practiceSummary.hidden = true;
+            nextBtn.hidden = false;
+            renderQuestionNumbers();
+            renderQuestion();
+            workspace.hidden = false;
+            status.className = 'ai-success';
+            status.textContent = `Your ${questions.length} question${questions.length === 1 ? '' : 's'} are ready. Start with question 1 and check each answer as you go.`;
+            workspace.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch (error) {
+            status.className = 'ai-error';
+            status.textContent = !navigator.onLine || error.name === 'TypeError'
+                ? "We couldn't reach the question generator. Please check your internet connection and try again."
+                : (error.message || "We couldn't prepare your practice set. Please try again in a moment.");
+        } finally {
+            button.disabled = false;
+            button.innerHTML = '<i class="fas fa-sparkles" aria-hidden="true"></i> Create practice set';
+        }
+    });
+
+    document.getElementById('optionsContainer').addEventListener('change', () => saveCurrentAnswer());
+    theoryAnswer.addEventListener('input', () => saveCurrentAnswer());
+
+    checkBtn.addEventListener('click', () => {
+        saveCurrentAnswer();
+        recordCurrentTime();
+        if (!answers[currentIndex]) {
+            feedbackStatus.textContent = 'Choose an answer or write a response before checking.';
+            feedbackStatus.className = 'feedback-status neutral';
+            feedbackBox.hidden = false;
+            solutionText.textContent = '';
+            return;
+        }
+        showFeedback();
+    });
+
+    nextBtn.addEventListener('click', () => {
+        saveCurrentAnswer();
+        recordCurrentTime();
+        if (currentIndex === questions.length - 1) {
+            if (!checked.has(currentIndex)) {
+                showFeedback();
+                return;
+            }
+            finishPractice();
+            return;
+        }
+        currentIndex += 1;
+        renderQuestion();
+    });
+
+    prevBtn.addEventListener('click', () => {
+        saveCurrentAnswer();
+        recordCurrentTime();
+        if (currentIndex > 0) {
+            currentIndex -= 1;
+            renderQuestion();
+        }
+    });
+
+    newSetBtn.addEventListener('click', resetWorkspace);
+    summaryNewSetBtn.addEventListener('click', resetWorkspace);
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Review {{ course_code }} Questions - PrepCampus Premium{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='premium.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="premium-dashboard-page course-review-page">
+    <div class="premium-page-heading">
+        <div>
+            <a href="{{ url_for('weakness_analysis') }}" class="premium-back-link">
+                <i class="fas fa-arrow-left" aria-hidden="true"></i> Weakness Analysis
+            </a>
+            <span class="premium-eyebrow">Course review</span>
+            <h1>Understand every answer in {{ course_code }}</h1>
+            <p>Review your latest questions, then add a confidence or miss-reason signal. These signals shape your seven-day study plan.</p>
+        </div>
+        <span class="premium-status"><i class="fas fa-brain" aria-hidden="true"></i> {{ answered_count }} question{{ '' if answered_count == 1 else 's' }}</span>
+    </div>
+
+    <form method="post" action="{{ url_for('save_review_responses', course_code=course_code) }}" class="course-review-form">
+        <div class="review-instructions ai-card">
+            <div class="summary-icon"><i class="fas fa-compass" aria-hidden="true"></i></div>
+            <div>
+                <strong>Be honest, not perfect.</strong>
+                <p>Your answers are private to your learning profile. Correct answers ask for confidence; incorrect answers ask what got in the way.</p>
+            </div>
+        </div>
+
+        <div class="course-review-list">
+        {% for attempt in attempts %}
+            <article class="course-review-card">
+                <div class="course-review-card-header">
+                    <div>
+                        <span class="premium-eyebrow">Question {{ loop.index }} · {{ attempt.topic or 'General practice' }}</span>
+                        <h2>{{ attempt.question_text or 'Question unavailable' }}</h2>
+                    </div>
+                    {% if attempt.was_correct %}
+                    <span class="review-result correct"><i class="fas fa-check" aria-hidden="true"></i> Correct</span>
+                    {% else %}
+                    <span class="review-result incorrect"><i class="fas fa-xmark" aria-hidden="true"></i> Review this</span>
+                    {% endif %}
+                </div>
+
+                <div class="review-answer-grid" aria-label="Answer details">
+                    <div><span>Your answer</span><strong>{{ attempt.selected_option or 'Not recorded' }}</strong></div>
+                    <div><span>Correct answer</span><strong>{{ attempt.correct_option or 'Not recorded' }}</strong></div>
+                    {% if attempt.solution %}<div class="review-solution"><span>Explanation</span><p>{{ attempt.solution }}</p></div>{% endif %}
+                </div>
+
+                <input type="hidden" name="question_id" value="{{ attempt.id }}">
+                {% if attempt.was_correct %}
+                <fieldset class="review-choice-group">
+                    <legend>How confident were you?</legend>
+                    <div class="review-choice-grid">
+                        {% for value, label, icon in [('very_confident', 'Very confident', 'fa-circle-check'), ('somewhat_confident', 'Somewhat confident', 'fa-circle-half-stroke'), ('guessing', 'Guessing', 'fa-circle-question')] %}
+                        <label class="review-choice">
+                            <input type="radio" name="confidence_{{ attempt.id }}" value="{{ value }}" {% if attempt.confidence == value %}checked{% endif %}>
+                            <span><i class="fas {{ icon }}" aria-hidden="true"></i>{{ label }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </fieldset>
+                {% else %}
+                <fieldset class="review-choice-group">
+                    <legend>Why did you miss this question?</legend>
+                    <div class="review-choice-grid">
+                        {% for value, label, icon in [('forgot', 'I forgot', 'fa-clock-rotate-left'), ('guessed', 'I guessed', 'fa-dice'), ('ran_out_of_time', 'I ran out of time', 'fa-stopwatch'), ('misunderstood_concept', 'I misunderstood the concept', 'fa-lightbulb')] %}
+                        <label class="review-choice">
+                            <input type="radio" name="miss_reason_{{ attempt.id }}" value="{{ value }}" {% if attempt.miss_reason == value %}checked{% endif %}>
+                            <span><i class="fas {{ icon }}" aria-hidden="true"></i>{{ label }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </fieldset>
+                {% endif %}
+            </article>
+        {% endfor %}
+        </div>
+
+        <div class="course-review-submit">
+            <a href="{{ url_for('weakness_analysis') }}" class="premium-button secondary">Save later</a>
+            <button type="submit" class="premium-button"><i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i> Generate my study plan</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

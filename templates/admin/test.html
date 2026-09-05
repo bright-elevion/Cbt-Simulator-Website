@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div class="admin-container">
+    <div class="admin-header">
+        <h1>📊 Admin Dashboard</h1>
+        <p>Welcome, {{ session.get('username') }}!</p>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-content">
+                <h3>Total Users</h3>
+                <p class="stat-number">{{ stats.get('total_users', 0) }}</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">📝</div>
+            <div class="stat-content">
+                <h3>Total Questions</h3>
+                <p class="stat-number">{{ stats.get('total_questions', 0) }}</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-content">
+                <h3>Quiz Attempts</h3>
+                <p class="stat-number">{{ stats.get('total_attempts', 0) }}</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">💳</div>
+            <div class="stat-content">
+                <h3>Paid Users</h3>
+                <p class="stat-number">{{ stats.get('paid_users', 0) }}</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-content">
+                <h3>Total Revenue</h3>
+                <p class="stat-number">₦{{ "{:,.0f}".format(stats.get('total_revenue', 0)) }}</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">💬</div>
+            <div class="stat-content">
+                <h3>Unread Feedback</h3>
+                <p class="stat-number">{{ stats.get('unread_feedback', 0) }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Menu -->
+    <div class="admin-menu">
+        <h2>Management Tools</h2>
+        <div class="menu-grid">
+            <a href="{{ url_for('admin_users') }}" class="menu-item">
+                <span class="menu-icon">👥</span>
+                <span class="menu-title">User Management</span>
+                <span class="menu-desc">View, suspend, or delete users</span>
+            </a>
+
+            <a href="{{ url_for('admin_questions') }}" class="menu-item">
+                <span class="menu-icon">📝</span>
+                <span class="menu-title">Question Management</span>
+                <span class="menu-desc">Add, edit, or delete questions</span>
+            </a>
+
+            <a href="{{ url_for('admin_payments') }}" class="menu-item">
+                <span class="menu-icon">💳</span>
+                <span class="menu-title">Payment Monitoring</span>
+                <span class="menu-desc">Confirm or reject payments</span>
+            </a>
+
+            <a href="{{ url_for('admin_analytics') }}" class="menu-item">
+                <span class="menu-icon">📊</span>
+                <span class="menu-title">Analytics & Reports</span>
+                <span class="menu-desc">View performance metrics</span>
+            </a>
+
+            <a href="{{ url_for('admin_feedback') }}" class="menu-item">
+                <span class="menu-icon">💬</span>
+                <span class="menu-title">Feedback & Reports</span>
+                <span class="menu-desc">Manage user feedback</span>
+            </a>
+
+            <a href="{{ url_for('admin_admins') }}" class="menu-item">
+                <span class="menu-icon">🔐</span>
+                <span class="menu-title">Admin Management</span>
+                <span class="menu-desc">Manage admin accounts</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .admin-header {
+        margin-bottom: 30px;
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 15px;
+    }
+
+    .admin-header h1 {
+        margin: 0;
+        color: #333;
+        font-size: 2.5em;
+    }
+
+    .admin-header p {
+        margin: 5px 0 0 0;
+        color: #666;
+    }
+
+    .stats-grid {
+        display: flex;
+    }
+
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-icon {
+        font-size: 2.5em;
+    }
+
+    .stat-content h3 {
+        margin: 0;
+        font-size: 0.9em;
+        opacity: 0.9;
+    }
+
+    .stat-number {
+        margin: 5px 0 0 0;
+        font-size: 1.8em;
+        font-weight: bold;
+    }
+
+    .admin-menu h2 {
+        margin-top: 40px;
+        margin-bottom: 20px;
+        color: #333;
+    }
+
+    .menu-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .menu-item {
+        background: white;
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        padding: 20px;
+        text-decoration: none;
+        color: #333;
+        transition: all 0.3s;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .menu-item:hover {
+        border-color: #007bff;
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+        transform: translateY(-3px);
+    }
+
+    .menu-icon {
+        font-size: 2em;
+    }
+
+    .menu-title {
+        font-weight: bold;
+        font-size: 1.1em;
+    }
+
+    .menu-desc {
+        font-size: 0.85em;
+        color: #666;
+    }
+</style>
+
+</body>
+</html>

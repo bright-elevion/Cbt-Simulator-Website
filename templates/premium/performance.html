@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Performance Insights - PrepCampus{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='premium.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="performance-insights-page">
+    <header class="premium-page-heading performance-heading">
+        <div>
+            <a href="{{ url_for('premium') }}" class="premium-back-link"><i class="fas fa-arrow-left" aria-hidden="true"></i> Premium workspace</a>
+            <p class="performance-eyebrow">Your learning intelligence dashboard</p>
+            <h1>Performance Insights</h1>
+            <p>See what is improving, where retention is fading, and which study action will give you the highest return.</p>
+        </div>
+        <div class="performance-heading-actions">
+            <span class="premium-status"><i class="fas fa-shield-check" aria-hidden="true"></i> Private to you</span>
+            <a href="{{ url_for('weakness_analysis') }}" class="premium-button secondary">Review weaknesses</a>
+        </div>
+    </header>
+
+    {% if not insights.has_data %}
+    <section class="performance-empty-state premium-panel" aria-labelledby="performance-empty-title">
+        <div class="performance-empty-icon"><i class="fas fa-chart-line" aria-hidden="true"></i></div>
+        <h2 id="performance-empty-title">Your insights will appear after your first completed set</h2>
+        <p>Complete a timed CBT set or a premium practice set. PrepCampus will then calculate your academic health, topic mastery, retention, readiness, speed, and study efficiency from your real activity.</p>
+        <div class="performance-empty-actions">
+            <a href="{{ url_for('paid_courses') }}" class="premium-button">Start a practice set</a>
+            <a href="{{ url_for('ai_questions') }}" class="premium-button secondary">Generate questions</a>
+        </div>
+    </section>
+    {% else %}
+
+    <section class="academic-health-hero premium-panel" aria-labelledby="health-title">
+        <div class="health-score-block">
+            <p class="performance-eyebrow">Academic health</p>
+            <div class="health-score" aria-label="Academic Health {{ insights.academic_health }} out of 100"><strong>{{ insights.academic_health }}</strong><span>/100</span></div>
+            <h2 id="health-title">A balanced view of your preparation</h2>
+            <p>Your score combines knowledge, retention, speed, consistency, and confidence. It is designed to guide your next action, not label your ability.</p>
+        </div>
+        <div class="health-components" aria-label="Academic health components">
+            {% for component in insights.health_components %}<div class="health-component"><div class="health-component-heading"><span>{{ component.name }}</span><strong>{{ component.value }}%</strong></div><div class="metric-track"><span class="metric-fill tone-{{ component.tone }}" style="width: {{ component.value }}%"></span></div></div>{% endfor %}
+        </div>
+    </section>
+
+    <section class="performance-kpi-grid" aria-label="Performance highlights">
+        <article class="performance-kpi"><span class="kpi-icon tone-blue"><i class="fas fa-bullseye" aria-hidden="true"></i></span><div><span class="kpi-label">Predicted exam score</span><strong>{{ (insights.predicted_exam.score ~ '%') if insights.predicted_exam.score is not none else 'Building' }}</strong><small>{{ insights.predicted_exam.sample_size }} scored set{{ '' if insights.predicted_exam.sample_size == 1 else 's' }} analysed</small></div></article>
+        <article class="performance-kpi"><span class="kpi-icon tone-purple"><i class="fas fa-fire" aria-hidden="true"></i></span><div><span class="kpi-label">Current streak</span><strong>{{ insights.streaks.current }} day{{ '' if insights.streaks.current == 1 else 's' }}</strong><small>Longest: {{ insights.streaks.longest }} day{{ '' if insights.streaks.longest == 1 else 's' }}</small></div></article>
+        <article class="performance-kpi"><span class="kpi-icon tone-green"><i class="fas fa-gauge-high" aria-hidden="true"></i></span><div><span class="kpi-label">Study efficiency</span><strong>{{ insights.efficiency.correct_per_hour ~ '/hr' if insights.efficiency.correct_per_hour is not none else 'Building' }}</strong><small>Correct answers per study hour</small></div></article>
+        <article class="performance-kpi"><span class="kpi-icon tone-amber"><i class="fas fa-list-check" aria-hidden="true"></i></span><div><span class="kpi-label">Questions answered</span><strong>{{ insights.total_attempts }}</strong><small>{{ insights.streaks.active_days }} active study day{{ '' if insights.streaks.active_days == 1 else 's' }}</small></div></article>
+    </section>
+
+    <section class="performance-section premium-panel" aria-labelledby="mastery-map-title">
+        <div class="performance-section-heading"><div><p class="performance-eyebrow">Topic-level diagnosis</p><h2 id="mastery-map-title">Mastery Map</h2><p>Every topic is classified from your recorded answers. Prioritise critical weaknesses before polishing mastered areas.</p></div></div>
+        {% for course in insights.mastery_map %}
+        <article class="mastery-course"><div class="mastery-course-heading"><h3>{{ course.course }}</h3><span>{{ course.topics|length }} topic{{ '' if course.topics|length == 1 else 's' }}</span></div><div class="mastery-status-grid">
+            {% for status, label, icon in [('mastered', 'Mastered', 'fa-circle-check'), ('practice', 'Needs practice', 'fa-circle-half-stroke'), ('critical', 'Critical weakness', 'fa-triangle-exclamation')] %}
+            <div class="mastery-status-card status-{{ status }}"><h4><i class="fas {{ icon }}" aria-hidden="true"></i> {{ label }}</h4>{% set matching = course.topics|selectattr('status', 'equalto', status)|list %}{% if matching %}<ul>{% for topic in matching %}<li><span>{{ topic.topic }}</span><strong>{{ topic.accuracy|round|int }}%</strong></li>{% endfor %}</ul>{% else %}<p class="muted-copy">No topics in this band yet.</p>{% endif %}</div>
+            {% endfor %}
+        </div></article>
+        {% endfor %}
+    </section>
+
+    <div class="performance-two-column">
+        <section class="performance-section premium-panel" aria-labelledby="prediction-title"><div class="performance-section-heading"><div><p class="performance-eyebrow">Historical estimate</p><h2 id="prediction-title">Predicted Exam Score</h2></div></div><div class="prediction-score">{{ insights.predicted_exam.score ~ '%' if insights.predicted_exam.score is not none else '—' }}</div><p class="muted-copy">{{ insights.predicted_exam.message }}</p>{% if insights.predicted_exam.probabilities %}<div class="probability-list" aria-label="Probability of scoring in each range">{% for bucket in insights.predicted_exam.probabilities %}<div class="probability-row"><span>{{ bucket.label }}</span><div class="metric-track"><span class="metric-fill tone-blue" style="width: {{ bucket.probability }}%"></span></div><strong>{{ bucket.probability }}%</strong></div>{% endfor %}</div>{% endif %}</section>
+        <section class="performance-section premium-panel" aria-labelledby="readiness-title"><div class="performance-section-heading"><div><p class="performance-eyebrow">Subject ranking</p><h2 id="readiness-title">Exam Readiness</h2></div></div><div class="readiness-list">{% for row in insights.readiness %}<div class="readiness-row"><div><strong>{{ row.course }}</strong><small>{{ row.attempts }} questions · {{ row.accuracy }}% accuracy</small></div><div class="readiness-meter"><span style="width: {{ row.score }}%"></span></div><strong>{{ row.score }}%</strong></div>{% else %}<p class="muted-copy">Complete questions across at least one course to build readiness.</p>{% endfor %}</div></section>
+    </div>
+
+    <section class="performance-section premium-panel" aria-labelledby="retention-title"><div class="performance-section-heading"><div><p class="performance-eyebrow">Spaced repetition</p><h2 id="retention-title">Retention Score</h2><p>Retention estimates use the time since your last practice. A low score means a short review now is more valuable than another broad study session.</p></div></div><div class="retention-anchor-curve" aria-label="Estimated retention curve"><div class="retention-anchor-heading"><strong>Estimated retention after correct recall</strong><span>Transparent heuristic</span></div><div class="retention-anchor-bars">{% for point in insights.retention_curve %}<div class="retention-anchor-point"><strong>{{ point.value }}%</strong><div class="retention-anchor-bar"><span style="height: {{ point.value }}%"></span></div><small>Day {{ point.day }}</small></div>{% endfor %}</div></div><div class="retention-grid">{% for row in insights.retention_topics %}<article class="retention-card {% if row.review_recommended %}is-review{% endif %}"><div class="retention-card-heading"><div><span class="retention-course">{{ row.course }}</span><h3>{{ row.topic }}</h3></div><strong>{{ row.retention }}%</strong></div><div class="metric-track"><span class="metric-fill {% if row.retention < 50 %}tone-red{% elif row.retention < 70 %}tone-amber{% else %}tone-green{% endif %}" style="width: {{ row.retention }}%"></span></div>{% if row.days_since is not none %}<p>{{ '⚠ Review recommended.' if row.review_recommended else 'Retention is currently stable.' }}<br><span>You last practised this topic {{ row.days_since }} day{{ '' if row.days_since == 1 else 's' }} ago.</span></p>{% else %}<p>Practice this topic to establish a retention baseline.</p>{% endif %}{% if row.review_recommended %}<a href="{{ url_for('weakness_analysis', course=row.course) }}" class="text-link">Review now <i class="fas fa-arrow-right" aria-hidden="true"></i></a>{% endif %}</article>{% else %}<p class="muted-copy">Retention insights will appear after you practise multiple topics.</p>{% endfor %}</div></section>
+
+    <div class="performance-two-column"><section class="performance-section premium-panel" aria-labelledby="efficiency-title"><div class="performance-section-heading"><div><p class="performance-eyebrow">Return on study time</p><h2 id="efficiency-title">Study Efficiency</h2></div></div><div class="efficiency-highlight"><strong>{{ insights.efficiency.correct_per_hour ~ ' correct/hour' if insights.efficiency.correct_per_hour is not none else 'Timing data is building' }}</strong><span>Questions answered: {{ insights.efficiency.questions }} · Correct: {{ insights.efficiency.correct }}</span></div><p class="muted-copy">Efficiency counts correct answers against measured question time. It helps you compare study sessions, not compete with other learners.</p></section><section class="performance-section premium-panel" aria-labelledby="time-title"><div class="performance-section-heading"><div><p class="performance-eyebrow">Timing behaviour</p><h2 id="time-title">Time Analysis</h2></div></div><div class="time-stat-grid"><div><strong>{{ insights.time_analysis.average ~ 's' if insights.time_analysis.average is not none else '—' }}</strong><span>Average</span></div><div><strong>{{ insights.time_analysis.fastest ~ 's' if insights.time_analysis.fastest is not none else '—' }}</strong><span>Fastest</span></div><div><strong>{{ insights.time_analysis.slowest ~ 's' if insights.time_analysis.slowest is not none else '—' }}</strong><span>Slowest</span></div></div><div class="speed-profile"><i class="fas fa-stopwatch" aria-hidden="true"></i><span>Speed profile</span><strong>{{ insights.time_analysis.profile }}</strong></div></section></div>
+
+    <section class="performance-section premium-panel" aria-labelledby="distractor-title"><div class="performance-section-heading"><div><p class="performance-eyebrow">Misconception detection</p><h2 id="distractor-title">Distractor Analysis</h2><p>Repeated wrong-option choices can reveal a concept distinction that needs targeted review.</p></div></div><div class="distractor-list">{% for item in distractors %}<article class="distractor-card {% if item.severity == 'high' %}is-high{% endif %}"><div class="distractor-question"><span>Question {{ loop.index }}</span><h3>{{ item.question_text }}</h3></div><div class="distractor-options">{% for option in item.selections %}<div class="distractor-option {% if option.is_correct %}is-correct{% elif option.percentage >= 40 %}is-misconception{% endif %}"><div><strong>{{ option.option }}{% if option.is_correct %} · Correct{% endif %}</strong><span>{{ option.text or 'Option unavailable' }}</span></div><div class="distractor-bar"><span style="width: {{ option.percentage }}%"></span></div><b>{{ option.percentage }}%</b></div>{% endfor %}</div><div class="distractor-insight"><i class="fas fa-lightbulb" aria-hidden="true"></i><p>{{ item.insight }}</p></div></article>{% else %}<p class="muted-copy">Distractor patterns appear after you answer the same question or concept more than once.</p>{% endfor %}</div></section>
+
+    <section class="streak-panel premium-panel" aria-labelledby="streak-title"><div><p class="performance-eyebrow">Consistency signal</p><h2 id="streak-title">Streak Analysis</h2><p>Small, regular sessions are easier to sustain than occasional cramming. Your activity is counted from recorded answer days.</p></div><div class="streak-stats"><div><strong>{{ insights.streaks.current }}</strong><span>Current streak</span></div><div><strong>{{ insights.streaks.longest }}</strong><span>Longest streak</span></div><div><strong>{{ insights.streaks.active_days }}</strong><span>Active days</span></div></div></section>
+    {% endif %}
+</div>
+{% endblock %}

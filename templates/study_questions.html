@@ -6,7 +6,7 @@
 <div class="quiz-container">
     <div class="timer-bar">
         <span>{{ course }} - Study Mode</span>
-        <a href="{{ url_for('index') }}" style="color: var(--primary-blue); text-decoration: none; font-size: 14px;">Exit</a>
+        <a href="{{ url_for('index') }}" style="color: var(--primary); text-decoration: none; font-size: 14px;">Exit</a>
     </div>
 
     <div class="progress-container">
@@ -52,8 +52,7 @@
 
         <div id="feedback-box" class="solution-box" style="display: none; margin-top: 20px;">
             <div id="feedback-status" style="font-weight: 700; margin-bottom: 10px;"></div>
-            <div class="solution-title">Step-by-Step Solution:</div>
-            <div id="solution-text" class="solution-text"></div>
+            <div id="solution-content" class="structured-solution-content"></div>
         </div>
     </div>
 
@@ -99,11 +98,16 @@ function displayQuestion() {
     if (questions.length === 0) return;
     
     const q = questions[currentQuestionIndex];
-    document.getElementById('question-text').textContent = q.question_text;
-    document.getElementById('option-a').textContent = q.option_a;
-    document.getElementById('option-b').textContent = q.option_b;
-    document.getElementById('option-c').textContent = q.option_c;
-    document.getElementById('option-d').textContent = q.option_d;
+    PrepCampusQuestionRenderer.setQuestion(
+        document.getElementById('question-text'),
+        [
+            document.getElementById('option-a'),
+            document.getElementById('option-b'),
+            document.getElementById('option-c'),
+            document.getElementById('option-d')
+        ],
+        q
+    );
     document.getElementById('current-question').textContent = currentQuestionIndex + 1;
     
     const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
@@ -189,7 +193,7 @@ function showFeedback() {
 
     const feedbackBox = document.getElementById('feedback-box');
     const feedbackStatus = document.getElementById('feedback-status');
-    const solutionText = document.getElementById('solution-text');
+    const solutionContent = document.getElementById('solution-content');
 
     feedbackBox.style.display = 'block';
     if (userAnswer === correctAnswer) {
@@ -203,7 +207,7 @@ function showFeedback() {
         feedbackStatus.style.color = "#c62828";
     }
     
-    solutionText.textContent = q.solution;
+    PrepCampusQuestionRenderer.renderSolution(solutionContent, q);
     document.getElementById('check-btn').style.display = 'none';
     checkedQuestions.add(currentQuestionIndex);
 }

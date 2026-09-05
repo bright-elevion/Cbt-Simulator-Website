@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Premium Feature - PrepCampus{% endblock %}
+
+{% block content %}
+
+<section class="section">
+    <div class="container">
+        <h1>Premium Feature</h1>
+        <p>This premium feature is being developed and will be available soon.</p>
+        
+        <div style="background: linear-gradient(135deg, #e3f2fd 0%, #f5f7fb 100%); padding: 40px; border-radius: 16px; margin-top: 30px; text-align: center;">
+            <h2>Coming Soon</h2>
+            <p>We're working hard to bring you this feature. Check back soon!</p>
+            <a href="{{ url_for('premium_dashboard') }}" class="primary-btn" style="display: inline-block; margin-top: 20px;">Back to Dashboard</a>
+        </div>
+    </div>
+</section>
+
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .section {
+        padding: 40px 20px;
+        background: #ffffff;
+    }
+
+    .primary-btn {
+        background: #2196f3;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .primary-btn:hover {
+        background: #1976d2;
+    }
+</style>
+
+{% endblock %}

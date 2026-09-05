@@ -1,0 +1,326 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="admin-container">
+    <!-- Breadcrumb/Back Navigation -->
+    <nav class="breadcrumb-nav">
+        <a href="{{ url_for('admin_admins') }}" class="back-link">
+            <span class="back-icon">←</span> Back to Admin Management
+        </a>
+    </nav>
+
+    <div class="form-card">
+        <!-- Card Header -->
+        <div class="card-header">
+            <div class="header-icon-bg">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+            </div>
+            <div class="header-text">
+                <h1>Add New Administrator</h1>
+                <p>Grant system access to a new or existing user</p>
+            </div>
+        </div>
+
+        <!-- Flash Messages Integration -->
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="flash-messages">
+              {% for message in messages %}
+                <div class="flash-message">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" class="admin-form">
+            <div class="form-grid">
+                <!-- Username Field -->
+                <div class="form-group">
+                    <label for="username">Username <span class="required-mark">*</span></label>
+                    <div class="input-wrapper">
+                        <input type="text" id="username" name="username" placeholder="enter name" required>
+                    </div>
+                    <small class="field-hint">Used for display and identification</small>
+                </div>
+
+                <!-- Email Field -->
+                <div class="form-group">
+                    <label for="email">Email Address <span class="required-mark">*</span></label>
+                    <div class="input-wrapper">
+                        <input type="email" id="email" name="email" placeholder="e.g. @email.com" required>
+                    </div>
+                    <small class="field-hint">Must be a valid email address</small>
+                </div>
+            </div>
+
+            <!-- Information Box -->
+            <div class="info-banner">
+                <div class="info-icon">💡</div>
+                <div class="info-content">
+                    <p><strong>System Logic:</strong> If the email matches an existing user, their role will be updated to <strong>Admin</strong>. If the email is new, a new account will be created with a temporary password.</p>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-footer">
+                <a href="{{ url_for('admin_admins') }}" class="btn btn-ghost">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <span class="btn-text">Create Admin Account</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Theme Variables Integration */
+    :root {
+        --primary: #007bff;
+        --primary-hover: #0056b3;
+        --secondary: #6c757d;
+        --bg-body: #f8fafc;
+        --bg-card: #ffffff;
+        --text-main: #333333;
+        --text-muted: #666666;
+        --border-color: #e2e8f0;
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .admin-container {
+        max-width: 650px;
+        margin: 40px auto;
+        padding: 0 20px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    /* Breadcrumb Navigation */
+    .breadcrumb-nav {
+        margin-bottom: 24px;
+    }
+
+    .back-link {
+        text-decoration: none;
+        color: var(--secondary);
+        font-size: 14px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        transition: color 0.2s;
+    }
+
+    .back-link:hover {
+        color: var(--primary);
+    }
+
+    .back-icon {
+        margin-right: 8px;
+        font-size: 16px;
+    }
+
+    /* Form Card Styling */
+    .form-card {
+        background: var(--bg-card);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
+
+    .card-header {
+        padding: 30px;
+        background: #fafbfc;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .header-icon-bg {
+        width: 48px;
+        height: 48px;
+        background: #e7f3ff;
+        color: var(--primary);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .header-text h1 {
+        margin: 0;
+        font-size: 20px;
+        color: var(--text-main);
+        font-weight: 700;
+    }
+
+    .header-text p {
+        margin: 4px 0 0 0;
+        font-size: 14px;
+        color: var(--text-muted);
+    }
+
+    /* Flash Messages */
+    .flash-messages {
+        padding: 20px 30px 0 30px;
+    }
+
+    .flash-message {
+        padding: 12px 16px;
+        background: #e7f3ff;
+        color: var(--primary);
+        border-radius: 8px;
+        border-left: 4px solid var(--primary);
+        font-size: 14px;
+    }
+
+    /* Form Layout */
+    .admin-form {
+        padding: 30px;
+    }
+
+    .form-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text-main);
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .required-mark {
+        color: #dc3545;
+    }
+
+    /* Input Styling */
+    .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 12px;
+        color: #94a3b8;
+        font-size: 16px;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px 12px 12px 40px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 15px;
+        transition: all 0.2s ease;
+        background-color: #fcfcfd;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: var(--primary);
+        background-color: #fff;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    }
+
+    .field-hint {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 6px;
+    }
+
+    /* Info Banner */
+    .info-banner {
+        margin-top: 30px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 16px;
+        display: flex;
+        gap: 12px;
+    }
+
+    .info-icon {
+        font-size: 18px;
+    }
+
+    .info-content p {
+        margin: 0;
+        font-size: 13px;
+        color: #475569;
+        line-height: 1.5;
+    }
+
+    /* Form Footer Actions */
+    .form-footer {
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+
+    .btn {
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.25);
+    }
+
+    .btn-ghost {
+        background: transparent;
+        color: var(--secondary);
+        border: 1px solid transparent;
+    }
+
+    .btn-ghost:hover {
+        background: #f1f5f9;
+        color: #334155;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 480px) {
+        .card-header {
+            padding: 20px;
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .form-footer {
+            flex-direction: column-reverse;
+        }
+        
+        .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}

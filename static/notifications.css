@@ -1,0 +1,182 @@
+/* Shared notification styles — kept separate so free-mode quiz styling is untouched. */
+
+/* ── Navigation bell icon ── */
+.notification-nav-button {
+    position: relative;
+    width: 42px; height: 42px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: inherit; text-decoration: none;
+    border-radius: 12px;
+    transition: background .2s ease, color .2s ease, transform .2s ease;
+}
+.notification-nav-button:hover,
+.notification-nav-button:focus-visible {
+    background: rgba(37,99,235,.1); color: #2563eb; transform: translateY(-1px);
+}
+.notification-nav-button:active { transform: translateY(0); }
+.notification-nav-badge {
+    position: absolute; top: 1px; right: 0;
+    min-width: 18px; height: 18px; padding: 0 5px;
+    border: 2px solid #fff; border-radius: 999px;
+    background: #dc2626; color: #fff;
+    font-size: 10px; font-weight: 800; line-height: 14px;
+    text-align: center; font-variant-numeric: tabular-nums;
+}
+
+/* ── Page layout ── */
+.notification-page { max-width: 980px; margin: 0 auto; padding: 32px 0 72px; }
+.notification-page-header,
+.notification-card,
+.notification-empty,
+.notification-summary {
+    background: #fff; border: 1px solid #e5e7eb;
+    border-radius: 20px; box-shadow: 0 12px 32px rgba(15,23,42,.06);
+}
+.notification-page-header {
+    display: flex; justify-content: space-between; gap: 24px;
+    align-items: flex-start; padding: 28px; margin-bottom: 18px;
+}
+.notification-eyebrow {
+    margin: 0 0 8px; color: #2563eb;
+    font-size: .76rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+}
+.notification-page-header h1 {
+    margin: 0; color: #0f172a;
+    font-size: clamp(1.65rem, 3vw, 2.25rem); letter-spacing: -.02em;
+}
+.notification-page-header p { max-width: 680px; margin: 10px 0 0; color: #64748b; line-height: 1.65; }
+.notification-page-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.notification-page-actions a,
+.notification-mark-all {
+    color: #2563eb; font-size: .84rem; font-weight: 800;
+    text-decoration: none; white-space: nowrap;
+    border: 0; background: transparent; cursor: pointer; font: inherit;
+}
+.notification-page-actions a:hover,
+.notification-mark-all:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ── Summary bar ── */
+.notification-summary {
+    display: flex; justify-content: space-between; gap: 16px;
+    align-items: center; padding: 15px 18px; margin-bottom: 14px;
+    color: #475569; line-height: 1.4;
+}
+.notification-summary strong { color: #0f172a; font-variant-numeric: tabular-nums; }
+
+/* ── Card list ── */
+.notification-list { display: grid; gap: 12px; }
+.notification-card {
+    display: grid; grid-template-columns: 44px 1fr auto;
+    gap: 16px; align-items: start; padding: 20px;
+    position: relative;
+    transition: border-color .2s ease, box-shadow .2s ease, opacity .2s ease;
+}
+.notification-card:hover { border-color: #cbd5e1; }
+.notification-card.is-unread { border-color: #bfdbfe; box-shadow: 0 14px 34px rgba(37,99,235,.1); }
+.notification-card.is-read  { opacity: .82; box-shadow: 0 8px 20px rgba(15,23,42,.04); }
+.notification-card.is-unread::before {
+    content: ''; position: absolute; top: 20px; left: 8px;
+    width: 4px; height: 18px; border-radius: 999px; background: #2563eb;
+}
+
+/* ── Card icon ── */
+.notification-card-icon {
+    width: 44px; height: 44px; flex-shrink: 0;
+    display: grid; place-items: center;
+    border-radius: 14px; background: #eff6ff; color: #2563eb;
+}
+.notification-severity-warning  .notification-card-icon { background: #fffbeb; color: #b45309; }
+.notification-severity-critical  .notification-card-icon { background: #fef2f2; color: #b91c1c; }
+.notification-severity-success   .notification-card-icon { background: #f0fdf4; color: #15803d; }
+.notification-source-admin       .notification-card-icon { background: #f5f3ff; color: #7c3aed; }
+.notification-card.is-read .notification-card-icon { background: #f8fafc; color: #64748b; }
+.notification-card.is-unread .notification-card-icon { box-shadow: 0 0 0 4px rgba(37,99,235,.07); }
+
+/* ── Card body ── */
+.notification-card-body { min-width: 0; }
+.notification-card-body h2 {
+    margin: 0 0 5px; color: #0f172a;
+    font-size: 1rem; font-weight: 800; line-height: 1.35; overflow-wrap: anywhere;
+}
+.notification-card.is-unread .notification-card-body h2::after {
+    content: 'New'; display: inline-block;
+    margin-left: 8px; padding: 2px 7px;
+    border-radius: 999px; background: #dbeafe; color: #1d4ed8;
+    font-size: .65rem; font-weight: 800; vertical-align: middle; white-space: nowrap;
+}
+.notification-card.is-read .notification-card-body h2::after { display: none; }
+.notification-card-body p { margin: 0; color: #475569; line-height: 1.6; overflow-wrap: anywhere; white-space: pre-line; }
+.notification-card-meta {
+    display: flex; flex-wrap: wrap; gap: 8px 12px;
+    margin-top: 10px; color: #94a3b8; font-size: .78rem;
+}
+.notification-card-meta span { display: inline-flex; align-items: center; gap: 5px; }
+.notification-card-action-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 12px; color: #2563eb; font-size: .84rem; font-weight: 800; text-decoration: none;
+}
+.notification-card-action-link:hover { text-decoration: underline; }
+.notification-card-action-link i { transition: transform .2s ease; }
+.notification-card-action-link:hover i { transform: translateX(2px); }
+
+/* ── Card actions ── */
+.notification-card-actions {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    justify-content: flex-end; align-items: flex-start; min-width: 120px;
+}
+.notification-card-actions button,
+.notification-card-actions a {
+    border: 0; background: transparent; cursor: pointer; font: inherit;
+    color: #2563eb; font-size: .82rem; font-weight: 700; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 4px; padding: 4px 2px;
+    user-select: none;
+}
+.notification-card-actions button:hover,
+.notification-card-actions a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.notification-button-danger { color: #b91c1c !important; }
+.notification-button-primary { color: #2563eb !important; }
+.notification-card-actions form { display: inline-flex; margin: 0; }
+
+/* ── Empty state ── */
+.notification-empty {
+    padding: 56px 28px; text-align: center;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+}
+.notification-empty i {
+    display: inline-grid; width: 56px; height: 56px; place-items: center;
+    margin-bottom: 14px; border-radius: 18px;
+    background: #eff6ff; color: #2563eb; font-size: 1.35rem;
+}
+.notification-empty h2 { margin: 0 0 8px; color: #0f172a; }
+.notification-empty p  { max-width: 480px; margin: 0 auto; color: #64748b; line-height: 1.6; }
+
+/* ── Focus rings ── */
+.notification-nav-button:focus-visible,
+.notification-page button:focus-visible,
+.notification-page a:focus-visible { outline: 3px solid rgba(37,99,235,.25); outline-offset: 3px; }
+
+/* ── Responsive ── */
+@media (max-width: 680px) {
+    .notification-page { padding: 20px 0 52px; }
+    .notification-page-header { display: block; padding: 22px; }
+    .notification-page-actions { margin-top: 16px; }
+    .notification-summary { flex-direction: column; align-items: flex-start; }
+    .notification-card { grid-template-columns: 40px 1fr; padding: 16px; }
+    .notification-card-icon { width: 40px; height: 40px; }
+    .notification-card-actions { grid-column: 2; justify-content: flex-start; min-width: 0; }
+    .notification-card.is-unread::before { top: 16px; left: 5px; }
+}
+
+/* ── Motion preference ── */
+@media (prefers-reduced-motion: reduce) {
+    .notification-nav-button,
+    .notification-card,
+    .notification-card-action-link i { transition: none; }
+}
+
+/* ── Print ── */
+@media print {
+    .notification-nav-button, .notification-card-actions, .notification-mark-all { display: none; }
+    .notification-page { padding: 0; }
+    .notification-card, .notification-page-header { box-shadow: none; }
+}

@@ -3,64 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}CBT App{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <!-- Using FontAwesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body>
-    <div class="mobile-container">
-        {% block content %}{% endblock %}
-        
-        <!-- Bottom Navigation -->
-        <nav class="bottom-nav" id="bottomNav">
-            <a href="{{ url_for('index') }}" class="nav-item {{ 'active' if request.endpoint == 'index' }}">
-                <i class="fas fa-home nav-icon"></i>
-                <span>Home</span>
-            </a>
-            <a href="{{ url_for('study_courses') }}" class="nav-item {{ 'active' if request.endpoint == 'study_courses' }}">
-                <i class="fas fa-book-open nav-icon"></i>
-                <span>Study</span>
-            </a>
-            <a href="{{ url_for('leaderboard') }}" class="nav-item {{ 'active' if request.endpoint == 'leaderboard' }}">
-                <i class="fas fa-trophy nav-icon"></i>
-                <span>Rank</span>
-            </a>
-            {% if session.get('user_id') %}
-            <a href="{{ url_for('profile') }}" class="nav-item {{ 'active' if request.endpoint == 'profile' }}">
-                <i class="fas fa-user-circle nav-icon"></i>
-                <span>Me</span>
-            </a>
-            {% else %}
-            <a href="{{ url_for('login') }}" class="nav-item {{ 'active' if request.endpoint == 'login' }}">
-                <i class="fas fa-sign-in-alt nav-icon"></i>
-                <span>Login</span>
-            </a>
-            {% endif %}
-        </nav>
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const bottomNav = document.getElementById('bottomNav');
-                
-                // Check if we should be hidden based on the current URL
-                const hiddenPages = ['/configure-test', '/quiz', '/result', '/review', '/payment'];
-                const isHiddenPage = hiddenPages.some(page => window.location.pathname.includes(page));
-                
-                if (isHiddenPage) {
-                    bottomNav.classList.add('hidden');
-                }
+    <meta name="theme-color" content="#2563eb">
+    <meta name="description" content="CBT Simulator - Practice smarter. Learn faster.">
+    <title>{% block title %}PrepCampus{% endblock %}</title>
 
-                // Add click listeners to quick links on the home page to hide nav immediately
-                const quickLinks = document.querySelectorAll('.quick-links-grid a, .simulator-links a');
-                quickLinks.forEach(link => {
-                    link.addEventListener('click', function() {
-                        if (bottomNav) {
-                            bottomNav.classList.add('hidden');
-                        }
-                    });
-                });
-            });
-        </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['\\(', '\\)']],
+            displayMath: [['\\[', '\\]']],
+            processEscapes: false
+        },
+        options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
+    };
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+    <script src="{{ url_for('static', filename='question-renderer.js') }}"></script>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='notifications.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+<!-- ==========================
+        TOP HEADER
+=========================== -->
+
+<header class="top-header">
+
+    <div class="logo">
+
+        <a href="{{ url_for('index') }}">
+
+            <img src="{{ url_for('static', filename='prepcampus_logo.png') }}"
+         class="heros">
+
+
+            <span>PrepCampus</span>
+
+        </a>
+
     </div>
+
+    <div class="header-actions">
+
+        {% if session.get('user_id') %}
+
+            {% if session.get('role') == 'admin' %}
+                <a href="{{ url_for('admin_dashboard') }}" class="admin-btn">
+                    <i class="fas fa-user-shield"></i>
+                    Dashboard
+                </a>
+            {% endif %}
+
+            <a href="{{ url_for('notification_center') }}" class="notification-nav-button" aria-label="Notifications" title="Notifications">
+                <i class="fas fa-bell" aria-hidden="true"></i>
+                {% if notification_unread_count %}<span class="notification-nav-badge">{{ notification_unread_count if notification_unread_count < 100 else '99+' }}</span>{% endif %}
+            </a>
+
+            <a href="{{ url_for('profile') }}" class="profile-btn">
+                <i class="fas fa-user-circle"></i>
+            </a>
+
+        {% else %}
+
+            <a href="{{ url_for('login') }}" class="login-btn">
+
+                Login
+
+            </a>
+
+        {% endif %}
+
+    </div>
+
+</header>
+
+<!-- ==========================
+      FLASH MESSAGES
+=========================== -->
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+
+{% if messages %}
+
+<div class="flash-container">
+
+    {% for category, message in messages %}
+
+        <div class="flash {{ category }}{% if category == 'retention' %} review-reminder-banner{% endif %}"{% if category == 'retention' %} role="status"{% endif %}>
+            <span>{{ message }}</span>
+            {% if category == 'retention' %}<a href="{{ url_for('weakness_analysis') }}" class="flash-action">Review now</a><button type="button" class="flash-dismiss" aria-label="Dismiss reminder" onclick="this.parentElement.remove()">×</button>{% endif %}
+        </div>
+
+    {% endfor %}
+
+</div>
+
+{% endif %}
+
+{% endwith %}
+
+<!-- ==========================
+        PAGE CONTENT
+=========================== -->
+
+<main class="page-content">
+
+    <div class="mobile-container">
+
+        {% block content %}{% endblock %}
+
+    </div>
+
+</main>
+
+<!-- ==========================
+      BOTTOM NAVIGATION
+=========================== -->
+
+<nav class="bottom-nav" id="bottomNav">
+
+    <a href="{{ url_for('index') }}"
+       class="nav-item {{ 'active' if request.endpoint == 'index' }}">
+
+        <i class="fas fa-home nav-icon"></i>
+
+        <span>Home</span>
+
+    </a>
+
+    <a href="{{ url_for('study_courses') }}"
+       class="nav-item {{ 'active' if request.endpoint == 'study_courses' }}">
+
+        <i class="fas fa-book-open nav-icon"></i>
+
+        <span>Study</span>
+
+    </a>
+
+    <a href="{{ url_for('leaderboard') }}"
+       class="nav-item {{ 'active' if request.endpoint == 'leaderboard' }}">
+        <i class="fas fa-trophy nav-icon"></i>
+        <span>Leaderboard</span>
+    </a>
+
+    {% if session.get('user_id') %}
+
+    <a href="{{ url_for('premium') }}" class="nav-item">
+        <i class="fas fa-crown"></i>
+        <span>Premium</span>
+    </a>
+
+    {% else %}
+
+    <a href="{{ url_for('login') }}"
+       class="nav-item {{ 'active' if request.endpoint == 'login' }}">
+
+        <i class="fas fa-sign-in-alt nav-icon"></i>
+
+        <span>Login</span>
+
+    </a>
+
+    {% endif %}
+
+</nav>
+
+<!-- ==========================
+          FOOTER
+=========================== -->
+
+<footer class="site-footer">
+
+    <p>
+
+        © 2026 CBT Simulator • Practice • Learn • Succeed
+
+    </p>
+
+</footer>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function(){
+
+    const bottomNav=document.getElementById("bottomNav");
+
+    const hiddenPages=[
+        "/configure-test",
+        "/quiz",
+        "/result",
+        "/review",
+        "/payment"
+    ];
+
+    if(hiddenPages.some(page=>window.location.pathname.includes(page))){
+        bottomNav.classList.add("hidden");
+    }
+
+});
+
+</script>
+
+{% block extra_js %}{% endblock %}
+
 </body>
 </html>

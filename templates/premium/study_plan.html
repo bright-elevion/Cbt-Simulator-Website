@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Study Plan · PrepCampus Premium{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='premium.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="premium-dashboard-page study-plan-page">
+    <header class="premium-page-heading">
+        <div>
+            <span class="premium-eyebrow">CampusMate planning workspace</span>
+            <h1>Your adaptive study plan</h1>
+            <p>Turn your available time into a practical sequence of focused review, active recall, and exam practice.</p>
+        </div>
+        <div class="premium-heading-actions">
+            <a href="{{ url_for('ai_coach') }}" class="premium-button secondary"><i class="fas fa-sliders" aria-hidden="true"></i> Adjust plan</a>
+            <a href="{{ url_for('premium_dashboard') }}" class="premium-button"><i class="fas fa-arrow-left" aria-hidden="true"></i> Dashboard</a>
+        </div>
+    </header>
+
+    {% if plan %}
+    <section class="study-plan-hero premium-panel" aria-label="Study plan status">
+        <div class="study-plan-hero-copy">
+            <span class="premium-eyebrow">{{ plan.courses|join(' · ') if plan.courses else 'Personalised revision' }}</span>
+            <h2>{{ plan.days_until_exam if plan.days_until_exam is not none else '—' }} <small>days until exam</small></h2>
+            <p>{{ plan.daily_minutes }} minutes planned today. Complete the next block, then let your quiz results update the priorities.</p>
+        </div>
+        <div class="study-plan-progress" aria-label="{{ plan.progress_percent }} percent complete">
+            <div class="study-plan-progress-ring" id="study-plan-progress-ring" style="--progress: {{ plan.progress_percent }}%;"><strong id="study-plan-progress-percent">{{ plan.progress_percent }}%</strong><span>complete</span></div>
+            <div><strong><span id="study-plan-completed-days">{{ plan.completed_days }}</span>/{{ plan.total_days }}</strong><span>study days completed</span></div>
+        </div>
+    </section>
+
+    <section class="premium-kpi-grid" aria-label="Plan summary">
+        <article class="premium-panel performance-kpi"><span class="premium-eyebrow">Daily target</span><strong>{{ plan.daily_minutes }} min</strong><small>Protected study time</small></article>
+        <article class="premium-panel performance-kpi"><span class="premium-eyebrow">Courses</span><strong>{{ plan.courses|length }}</strong><small>In this active plan</small></article>
+        <article class="premium-panel performance-kpi"><span class="premium-eyebrow">Question history</span><strong>{{ total_attempts }}</strong><small>Attempts informing the plan</small></article>
+        <article class="premium-panel performance-kpi"><span class="premium-eyebrow">Plan mode</span><strong>{{ 'Emergency' if plan.emergency else 'Adaptive' }}</strong><small>Refreshes after practice</small></article>
+    </section>
+
+    <section class="premium-dashboard-section" aria-labelledby="plan-days-heading">
+        <div class="premium-section-heading">
+            <div><span class="premium-eyebrow">Your next actions</span><h2 id="plan-days-heading">Study schedule</h2><p>Start with the first incomplete day. You can revisit completed days whenever retention drops.</p></div>
+        </div>
+        <div class="study-plan-list production-study-plan-list">
+            {% for day in plan.days %}
+            <article class="study-plan-day{% if day.completed %} is-complete{% endif %}" data-plan-date="{{ day.date }}">
+                <div class="study-plan-day-number">{% if day.completed %}<i class="fas fa-check" aria-hidden="true"></i>{% else %}{{ loop.index }}{% endif %}</div>
+                <div class="study-plan-day-content">
+                    <div class="study-plan-day-heading">
+                        <div><span class="premium-eyebrow">{{ day.day }} · {{ day.date }}</span><h3>{{ day.task }}</h3></div>
+                        {% if day.completed %}<span class="study-plan-status success">Completed</span>{% else %}<span class="study-plan-status">Next focus</span>{% endif %}
+                    </div>
+                    <div class="study-plan-allocation-list">
+                        {% for allocation in day.allocations %}
+                        <div class="study-plan-allocation"><strong>{{ allocation.course }}</strong><span>{{ allocation.topic }}</span><time>{{ allocation.minutes }} min</time></div>
+                        {% endfor %}
+                    </div>
+                    {% if not day.completed %}<button type="button" class="premium-button compact complete-plan-day" data-date="{{ day.date }}"><i class="fas fa-check" aria-hidden="true"></i> Mark day complete</button>{% endif %}
+                </div>
+            </article>
+            {% else %}
+            <div class="premium-empty-state"><i class="fas fa-calendar-plus" aria-hidden="true"></i><h3>Your plan is ready to be created</h3><p>Set an exam date and courses in CampusMate to generate a plan that adapts to your performance.</p><a href="{{ url_for('ai_coach') }}" class="premium-button">Open CampusMate</a></div>
+            {% endfor %}
+        </div>
+    </section>
+    {% else %}
+    <section class="premium-empty-state large study-plan-empty">
+        <div class="premium-empty-icon"><i class="fas fa-calendar-days" aria-hidden="true"></i></div>
+        <span class="premium-eyebrow">No active plan yet</span>
+        <h2>Build a plan that knows what to prioritise</h2>
+        <p>CampusMate uses your exam date, available time, courses, mistakes, retention, and recent quiz activity to recommend what to study next.</p>
+        <a href="{{ url_for('ai_coach') }}" class="premium-button"><i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i> Set up CampusMate</a>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(() => {
+    const buttons = document.querySelectorAll('.complete-plan-day');
+    buttons.forEach((button) => {
+        button.addEventListener('click', async () => {
+            const original = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Saving';
+            try {
+                const response = await fetch('{{ url_for('complete_campusmate_plan_day') }}', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({date: button.dataset.date})
+                });
+                const payload = await response.json();
+                if (!response.ok || !payload.success) throw new Error(payload.error || 'Could not save this day.');
+                const card = button.closest('.study-plan-day');
+                card.classList.add('is-complete');
+                button.remove();
+                const status = card.querySelector('.study-plan-status');
+                if (status) { status.textContent = 'Completed'; status.classList.add('success'); }
+                const number = card.querySelector('.study-plan-day-number');
+                if (number) number.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i>';
+                const completedDays = document.getElementById('study-plan-completed-days');
+                const progressPercent = document.getElementById('study-plan-progress-percent');
+                const progressRing = document.getElementById('study-plan-progress-ring');
+                if (completedDays && progressPercent && progressRing) {
+                    const nextCompleted = Number(completedDays.textContent || 0) + 1;
+                    const totalDays = Number(completedDays.parentElement.textContent.split('/')[1] || 0);
+                    const nextPercent = totalDays ? Math.round((nextCompleted / totalDays) * 100) : 0;
+                    completedDays.textContent = nextCompleted;
+                    progressPercent.textContent = `${nextPercent}%`;
+                    progressRing.style.setProperty('--progress', `${nextPercent}%`);
+                    progressRing.parentElement.setAttribute('aria-label', `${nextPercent} percent complete`);
+                }
+            } catch (error) {
+                button.disabled = false;
+                button.innerHTML = original;
+                window.alert(error.message || 'We could not save this study day.');
+            }
+        });
+    });
+})();
+</script>
+{% endblock %}

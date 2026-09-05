@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications · PrepCampus{% endblock %}
+
+{% block content %}
+<div class="notification-page">
+    <header class="notification-page-header">
+        <div><p class="notification-eyebrow">Your learning inbox</p><h1>Notifications</h1><p>Important reminders from CampusMate and the PrepCampus team, kept in one place.</p></div>
+        {% if notifications %}<button type="button" class="notification-outline-button" id="markAllNotifications"><i class="fas fa-check-double" aria-hidden="true"></i> Mark all as read</button>{% endif %}
+    </header>
+    {% if notifications %}
+    <section class="notification-list" aria-label="Notifications">
+        {% for item in notifications %}
+        <article class="notification-card{% if not item.read_at %} is-unread{% endif %}" data-notification-id="{{ item.id }}">
+            <div class="notification-card-icon severity-{{ item.severity or 'info' }}"><i class="fas {{ 'fa-bullhorn' if item.source == 'admin' else 'fa-graduation-cap' if item.source == 'campusmate' else 'fa-bell' }}" aria-hidden="true"></i></div>
+            <div class="notification-card-body"><div class="notification-card-meta"><span>{{ (item.source or 'PrepCampus')|title }}</span><time>{{ item.created_at.strftime('%b %d, %Y · %I:%M %p') if item.created_at else 'Recently' }}</time>{% if not item.read_at %}<strong>New</strong>{% endif %}</div><h2>{{ item.title or 'PrepCampus notification' }}</h2><p>{{ item.message }}</p><div class="notification-card-actions">{% if item.action_url %}<a href="{{ item.action_url }}" class="notification-action-link">Open related study area <i class="fas fa-arrow-right" aria-hidden="true"></i></a>{% endif %}<button type="button" class="notification-text-button notification-read-button" data-id="{{ item.id }}">{% if item.read_at %}Read{% else %}Mark as read{% endif %}</button><button type="button" class="notification-text-button notification-dismiss-button" data-id="{{ item.id }}">Dismiss</button></div></div>
+        </article>
+        {% endfor %}
+    </section>
+    {% else %}
+    <section class="notification-empty"><div class="notification-empty-icon"><i class="fas fa-inbox" aria-hidden="true"></i></div><h2>You are all caught up.</h2><p>New study reminders, CampusMate insights, and important account messages will appear here.</p><a href="{{ url_for('study_courses') }}" class="premium-button">Continue studying</a></section>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+    async function update(url, button, card) {
+        button.disabled = true;
+        try {
+            const response = await fetch(url, {method: 'POST', headers: {'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json'}});
+            const payload = await response.json();
+            if (!response.ok || !payload.ok) throw new Error('notification update failed');
+            if (url.includes('/dismiss')) { card.remove(); } else { card.classList.remove('is-unread'); const label = card.querySelector('.notification-read-button'); if (label) label.textContent = 'Read'; const badge = card.querySelector('.notification-card-meta strong'); if (badge) badge.remove(); }
+            if (!document.querySelector('.notification-card')) window.location.reload();
+        } catch (error) { button.disabled = false; button.textContent = 'Try again'; }
+    }
+    document.querySelectorAll('.notification-read-button').forEach(button => button.addEventListener('click', () => update('/notifications/' + button.dataset.id + '/read', button, button.closest('.notification-card'))));
+    document.querySelectorAll('.notification-dismiss-button').forEach(button => button.addEventListener('click', () => update('/notifications/' + button.dataset.id + '/dismiss', button, button.closest('.notification-card'))));
+    const all = document.getElementById('markAllNotifications'); if (all) all.addEventListener('click', async function () { await update('/notifications/read-all', all, document.body); window.location.reload(); });
+})();
+</script>
+{% endblock %}

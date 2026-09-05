@@ -4,4 +4,25 @@ authlib
 python-dotenv
 requests
 Werkzeug
+Pillow>=10.0.0
 psycopg2-binary
+
+# PrepCampus Coach Requirements
+
+# AI Providers
+openai>=1.3.0
+google-genai>=1.0.0,<3.0.0
+
+# Data Processing
+python-dateutil>=2.8.2
+
+# Optional: For advanced features
+numpy>=1.24.0
+pandas>=2.0.0
+
+# Development
+pytest>=7.0.0
+pytest-cov>=4.0.0
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.0.0

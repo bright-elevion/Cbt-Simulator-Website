@@ -1,0 +1,852 @@
+{% extends "base.html" %}
+
+{% block title %}PrepCampus Premium - Study Smarter. Pass Faster.{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Premium Page Styles */
+    .premium-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    /* Hero Section */
+    .premium-hero {
+        padding: 80px 20px;
+        background: linear-gradient(135deg, #f5f7fb 0%, #e3f2fd 100%);
+        text-align: left;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .premium-hero::after {
+        content: '';
+        position: absolute;
+        right: -100px;
+        top: -50px;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(33, 150, 243, 0.1) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .premium-hero-content {
+        position: relative;
+        z-index: 1;
+        max-width: 600px;
+    }
+
+    .premium-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: rgba(33, 150, 243, 0.1);
+        border: 1px solid rgba(33, 150, 243, 0.3);
+        border-radius: 20px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #2196f3;
+    }
+
+    .premium-hero h1 {
+        font-size: 56px;
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 20px;
+        color: var(--text);
+    }
+
+    .premium-hero h1 .highlight {
+        color: #2196f3;
+    }
+
+    .premium-hero h1 .gold {
+        color: #F4B400;
+    }
+
+    .premium-hero p {
+        font-size: 18px;
+        color: var(--text-light);
+        line-height: 1.6;
+        margin-bottom: 30px;
+    }
+
+    .premium-cta-group {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .premium-btn {
+        padding: 14px 32px;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .premium-btn-primary {
+        background: linear-gradient(135deg, #F4B400 0%, #D4A000 100%);
+        color: #1a1a1a;
+        box-shadow: 0 4px 15px rgba(244, 180, 0, 0.3);
+    }
+
+    .premium-btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(244, 180, 0, 0.4);
+    }
+
+    .premium-btn-secondary {
+        background: transparent;
+        color: var(--text);
+        border: 2px solid var(--border);
+    }
+
+    .premium-btn-secondary:hover {
+        border-color: #2196f3;
+        background: rgba(33, 150, 243, 0.05);
+    }
+
+    /* Features Section */
+    .premium-features {
+        padding: 80px 20px;
+        background: #ffffff;
+    }
+
+    .section-header {
+        max-width: 600px;
+        margin-bottom: 60px;
+    }
+
+    .section-header h2 {
+        font-size: 42px;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: var(--text);
+    }
+
+    .section-header p {
+        font-size: 16px;
+        color: var(--text-light);
+        line-height: 1.6;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 30px;
+    }
+
+    .feature-card {
+        padding: 30px;
+        background: rgba(33, 150, 243, 0.05);
+        border: 1px solid rgba(33, 150, 243, 0.1);
+        border-radius: 16px;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-8px);
+        background: rgba(33, 150, 243, 0.08);
+        border-color: rgba(33, 150, 243, 0.3);
+        box-shadow: 0 12px 30px rgba(33, 150, 243, 0.15);
+    }
+
+    .feature-icon {
+        font-size: 40px;
+        margin-bottom: 15px;
+        display: inline-block;
+    }
+
+    .feature-card h3 {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 10px;
+        color: var(--text);
+    }
+
+    .feature-card p {
+        font-size: 14px;
+        color: var(--text-light);
+        line-height: 1.6;
+    }
+
+    .premium-badge-small {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 8px;
+        background: #FFE082;
+        color: #F57F17;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        margin-top: 10px;
+    }
+
+    /* Testimonials Section */
+    .premium-testimonials {
+        padding: 80px 20px;
+        background: linear-gradient(135deg, #f5f7fb 0%, #ffffff 100%);
+    }
+
+    .testimonials-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+    }
+
+    .testimonial-card {
+        padding: 30px;
+        background: #ffffff;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .testimonial-card:hover {
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        transform: translateY(-4px);
+    }
+
+    .stars {
+        color: #F4B400;
+        font-size: 16px;
+        margin-bottom: 15px;
+    }
+
+    .testimonial-text {
+        font-size: 15px;
+        color: var(--text);
+        line-height: 1.6;
+        margin-bottom: 20px;
+    }
+
+    .testimonial-author {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .author-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 16px;
+    }
+
+    .author-info h4 {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text);
+        margin: 0;
+    }
+
+    .author-info p {
+        font-size: 12px;
+        color: var(--text-light);
+        margin: 0;
+    }
+
+    /* Pricing Section */
+    .premium-pricing {
+        padding: 80px 20px;
+        background: #ffffff;
+    }
+
+    .pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 30px;
+        max-width: 900px;
+    }
+
+    .pricing-card {
+        padding: 40px 30px;
+        border: 2px solid var(--border);
+        border-radius: 16px;
+        background: #ffffff;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .pricing-card.featured {
+        border-color: #F4B400;
+        background: linear-gradient(135deg, rgba(244, 180, 0, 0.05) 0%, rgba(244, 180, 0, 0.02) 100%);
+        transform: scale(1.05);
+        box-shadow: 0 12px 30px rgba(244, 180, 0, 0.2);
+    }
+
+    .pricing-badge {
+        position: absolute;
+        top: -15px;
+        left: 20px;
+        background: #F4B400;
+        color: #1a1a1a;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .pricing-card h3 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 10px;
+        color: var(--text);
+    }
+
+    .pricing-price {
+        font-size: 36px;
+        font-weight: 700;
+        color: #2196f3;
+        margin-bottom: 5px;
+    }
+
+    .pricing-period {
+        font-size: 14px;
+        color: var(--text-light);
+        margin-bottom: 30px;
+    }
+
+    .pricing-features {
+        list-style: none;
+        margin-bottom: 30px;
+    }
+
+    .pricing-features li {
+        padding: 10px 0;
+        font-size: 14px;
+        color: var(--text);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .pricing-features li:last-child {
+        border-bottom: none;
+    }
+
+    .pricing-features i {
+        color: #4CAF50;
+        font-size: 16px;
+    }
+
+    .pricing-card .premium-btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    /* FAQ Section */
+    .premium-faq {
+        padding: 80px 20px;
+        background: linear-gradient(135deg, #f5f7fb 0%, #ffffff 100%);
+    }
+
+    .faq-container {
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    .faq-item {
+        margin-bottom: 20px;
+        background: #ffffff;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .faq-question {
+        padding: 20px;
+        background: #ffffff;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 600;
+        color: var(--text);
+        transition: all 0.3s ease;
+    }
+
+    .faq-question:hover {
+        background: rgba(33, 150, 243, 0.05);
+    }
+
+    .faq-question.active {
+        background: rgba(33, 150, 243, 0.1);
+        color: #2196f3;
+    }
+
+    .faq-icon {
+        font-size: 18px;
+        transition: transform 0.3s ease;
+    }
+
+    .faq-question.active .faq-icon {
+        transform: rotate(180deg);
+    }
+
+    .faq-answer {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        background: rgba(33, 150, 243, 0.05);
+    }
+
+    .faq-answer.active {
+        max-height: 500px;
+    }
+
+    .faq-answer-content {
+        padding: 20px;
+        font-size: 14px;
+        color: var(--text-light);
+        line-height: 1.6;
+    }
+
+    /* CTA Section */
+    .premium-cta-final {
+        padding: 60px 20px;
+        background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+        color: white;
+        text-align: center;
+    }
+
+    .premium-cta-final h2 {
+        font-size: 42px;
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+
+    .premium-cta-final p {
+        font-size: 18px;
+        margin-bottom: 30px;
+        opacity: 0.95;
+    }
+
+    .premium-cta-final .premium-btn {
+        background: #F4B400;
+        color: #1a1a1a;
+        box-shadow: 0 4px 15px rgba(244, 180, 0, 0.3);
+    }
+
+    .premium-cta-final .premium-btn:hover {
+        background: #E6A300;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(244, 180, 0, 0.4);
+    }
+
+    /* Already Premium Message */
+    .premium-alert {
+        padding: 20px;
+        background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(76, 175, 80, 0.05) 100%);
+        border: 1px solid rgba(76, 175, 80, 0.3);
+        border-radius: 12px;
+        margin-bottom: 40px;
+        text-align: center;
+        color: #2e7d32;
+    }
+
+    .premium-alert i {
+        margin-right: 10px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .premium-hero h1 {
+            font-size: 36px;
+        }
+
+        .premium-hero p {
+            font-size: 16px;
+        }
+
+        .premium-cta-group {
+            flex-direction: column;
+        }
+
+        .premium-btn {
+            width: 100%;
+            text-align: center;
+        }
+
+        .section-header h2 {
+            font-size: 32px;
+        }
+
+        .pricing-card.featured {
+            transform: scale(1);
+        }
+
+        .premium-cta-final h2 {
+            font-size: 32px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{% if user_is_premium %}
+<div class="premium-container">
+    <div class="premium-alert">
+        <i class="fas fa-check-circle"></i>
+        <strong>You're a Premium Member!</strong> Enjoy all these features and more.
+    </div>
+</div>
+{% endif %}
+
+<!-- Hero Section -->
+<section class="premium-hero">
+    <div class="premium-container">
+        <div class="premium-hero-content">
+            <div class="premium-badge">
+                <i class="fas fa-sparkles"></i>
+                AI-Powered Learning Platform
+            </div>
+            <h1>Study Smarter.<br><span class="highlight">Pass</span> <span class="gold">Faster.</span></h1>
+            <p>Unlock AI-powered coaching, personalized study plans, adaptive practice and detailed performance insights. Everything you need to master your exams.</p>
+            <div class="premium-cta-group">
+                {% if user_is_premium %}
+                    <a href="{{ url_for('premium_dashboard') }}" class="premium-btn premium-btn-primary">
+                        Go to Dashboard <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('payment') }}" class="premium-btn premium-btn-primary">
+                        Upgrade to Premium <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>
+                    </a>
+                    <a href="#features" class="premium-btn premium-btn-secondary">
+                        See What's Included
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="premium-features" id="features">
+    <div class="premium-container">
+        <div class="section-header">
+            <h2>Your AI Coach, Your Competitive Edge</h2>
+            <p>Twelve powerful tools working together to identify your weaknesses, personalize your prep, and build the confidence you need to ace your exam.</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🤖</div>
+                <h3>PrepCampus Coach</h3>
+                <p>AI-powered personal tutor that explains every concept and adapts to your learning style.</p>
+                <div class="premium-badge-small">
+                    <i class="fas fa-lock"></i> Premium
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📋</div>
+                <h3>AI Study Plan</h3>
+                <p>Personalized study roadmap that evolves based on your performance and learning pace.</p>
+                <div class="premium-badge-small">
+                    <i class="fas fa-lock"></i> Premium
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔍</div>
+                <h3>Weakness Analysis</h3>
+                <p>Deep dive into your knowledge gaps with AI-powered diagnostics and targeted recommendations.</p>
+                <div class="premium-badge-small">
+                    <i class="fas fa-lock"></i> Premium
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Adaptive Practice</h3>
+                <p>Questions that adjust difficulty based on your performance for optimal learning.</p>
+                <div class="premium-badge-small">
+                    <i class="fas fa-lock"></i> Premium
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📓</div>
+                <h3>Mistake Notebook</h3>
+                <p>Automatically track and review your mistakes to prevent repeating them on exam day.</p>
+                <div class="premium-badge-small">
+                    <i class="fas fa-lock"></i> Premium
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>AI Mock Exams</h3>
+                <p>Full-length practice tests that simulate real exam conditions with instant feedback.</p>
+                <div class="premium-badge-small">
+                    <i class="fas fa-lock"></i> Premium
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🃏</div>
+                <h3>Smart Flashcards</h3>
+                <p>Spaced repetition flashcards that optimize memorization and long-term retention.</p>
+                <div class="premium-badge-small">
+                    <i class="fas fa-lock"></i> Premium
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📐</div>
+                <h3>Formula Sheets</h3>
+                <p>Organized, searchable formula references for quick lookup during study sessions.</p>
+                <div class="premium-badge-small">
+                    <i class="fas fa-lock"></i> Premium
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔥</div>
+                <h3>Daily Challenge</h3>
+                <p>Fresh questions every day to keep your skills sharp and maintain momentum.</p>
+                <div class="premium-badge-small">
+                    <i class="fas fa-lock"></i> Premium
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Performance Dashboard</h3>
+                <p>Real-time analytics showing your progress, strengths, and areas for improvement.</p>
+                <div class="premium-badge-small">
+                    <i class="fas fa-lock"></i> Premium
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📈</div>
+                <h3>GPA Predictor</h3>
+                <p>AI-powered predictions of your likely exam score based on current performance.</p>
+                <div class="premium-badge-small">
+                    <i class="fas fa-lock"></i> Premium
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🏆</div>
+                <h3>Challenge Friends</h3>
+                <p>Compete with classmates in real-time challenges and climb the leaderboard.</p>
+                <div class="premium-badge-small">
+                    <i class="fas fa-lock"></i> Premium
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="premium-testimonials" id="testimonials">
+    <div class="premium-container">
+        <div class="section-header">
+            <h2>Students Are Passing Faster</h2>
+            <p>See how PrepCampus Premium helped ambitious students transform their exam scores and build real confidence.</p>
+        </div>
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div class="stars">★★★★★</div>
+                <p class="testimonial-text">"I went from scoring 45% to 78% in just 6 weeks. The AI Coach explained concepts I never understood before. PrepCampus Premium is a game-changer!"</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">CD</div>
+                    <div class="author-info">
+                        <h4>Chioma David</h4>
+                        <p>JAMB Prep Student</p>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="stars">★★★★★</div>
+                <p class="testimonial-text">"The personalized study plan saved me so much time. Instead of studying everything, I focused on what I actually needed. Scored 82%!"</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">EM</div>
+                    <div class="author-info">
+                        <h4>Emeka Obi</h4>
+                        <p>WAEC Exam Taker</p>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="stars">★★★★★</div>
+                <p class="testimonial-text">"The mistake notebook feature is incredible. I stopped making the same errors over and over. My confidence going into the exam was unreal."</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">ZA</div>
+                    <div class="author-info">
+                        <h4>Zainab Ahmed</h4>
+                        <p>NECO Exam Taker</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Section -->
+<section class="premium-pricing" id="pricing">
+    <div class="premium-container">
+        <div class="section-header">
+            <h2>Invest in Your Success</h2>
+            <p>Premium features designed to deliver measurable results. Start free, upgrade when you're ready.</p>
+        </div>
+        <div class="pricing-grid">
+            <div class="pricing-card">
+                <h3>Free</h3>
+                <div class="pricing-price">₦0</div>
+                <div class="pricing-period">Forever</div>
+                <ul class="pricing-features">
+                    <li><i class="fas fa-check"></i> Limited practice questions</li>
+                    <li><i class="fas fa-check"></i> Basic performance tracking</li>
+                    <li><i class="fas fa-check"></i> Standard explanations</li>
+                    <li><i class="fas fa-check"></i> Mobile access</li>
+                </ul>
+                <a href="{{ url_for('free_courses') }}" class="premium-btn premium-btn-secondary">Get Started</a>
+            </div>
+            <div class="pricing-card featured">
+                <div class="pricing-badge">MOST POPULAR</div>
+                <h3>Premium</h3>
+                <div class="pricing-price">₦4,999</div>
+                <div class="pricing-period">per month</div>
+                <ul class="pricing-features">
+                    <li><i class="fas fa-check"></i> Unlimited practice questions</li>
+                    <li><i class="fas fa-check"></i> AI-powered coaching</li>
+                    <li><i class="fas fa-check"></i> Personalized study plans</li>
+                    <li><i class="fas fa-check"></i> Performance analytics</li>
+                    <li><i class="fas fa-check"></i> Mock exams</li>
+                    <li><i class="fas fa-check"></i> Mistake tracking</li>
+                    <li><i class="fas fa-check"></i> Priority support</li>
+                </ul>
+                {% if user_is_premium %}
+                    <a href="{{ url_for('premium_dashboard') }}" class="premium-btn premium-btn-primary">Go to Dashboard</a>
+                {% else %}
+                    <a href="{{ url_for('payment') }}" class="premium-btn premium-btn-primary">Upgrade Now</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="premium-faq" id="faq">
+    <div class="premium-container">
+        <div class="section-header">
+            <h2>Frequently Asked Questions</h2>
+            <p>Everything you need to know about PrepCampus Premium.</p>
+        </div>
+        <div class="faq-container">
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>What makes PrepCampus Premium different?</span>
+                    <i class="fas fa-chevron-down faq-icon"></i>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        PrepCampus Premium combines AI-powered personalization with proven study techniques. Our AI Coach adapts to your learning style, the adaptive practice adjusts difficulty in real-time, and our performance analytics show exactly what you need to focus on.
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>Can I try Premium before paying?</span>
+                    <i class="fas fa-chevron-down faq-icon"></i>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        Yes! Start with our Free plan to explore the platform. You'll get a feel for how PrepCampus works, then upgrade to Premium whenever you're ready to unlock AI features and unlimited practice.
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>How does the AI Coach work?</span>
+                    <i class="fas fa-chevron-down faq-icon"></i>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        The AI Coach learns your strengths and weaknesses from your practice sessions. It then provides personalized explanations, suggests relevant topics to study, and adapts its teaching style based on how you learn best.
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>Is my study data private?</span>
+                    <i class="fas fa-chevron-down faq-icon"></i>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        Absolutely. Your study data is encrypted and never shared with third parties. We only use it to personalize your learning experience and provide you with insights.
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>Can I cancel anytime?</span>
+                    <i class="fas fa-chevron-down faq-icon"></i>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        Yes, you can cancel your subscription anytime without penalties. If you cancel mid-month, you'll retain access until the end of your billing period.
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>Do I need to download an app?</span>
+                    <i class="fas fa-chevron-down faq-icon"></i>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        No, PrepCampus works directly in your browser on any device. You can study on your phone, tablet, or computer—your progress syncs automatically.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Final CTA Section -->
+{% if not user_is_premium %}
+<section class="premium-cta-final">
+    <div class="premium-container">
+        <h2>Ready to Pass Faster?</h2>
+        <p>Join thousands of students who are already using PrepCampus Premium to ace their exams.</p>
+        <a href="{{ url_for('payment') }}" class="premium-btn premium-btn-primary">Start Your Premium Journey</a>
+    </div>
+</section>
+{% endif %}
+
+<script>
+    function toggleFAQ(element) {
+        const question = element;
+        const answer = element.nextElementSibling;
+        
+        // Close all other FAQs
+        document.querySelectorAll('.faq-question').forEach(q => {
+            if (q !== question) {
+                q.classList.remove('active');
+                q.nextElementSibling.classList.remove('active');
+            }
+        });
+        
+        // Toggle current FAQ
+        question.classList.toggle('active');
+        answer.classList.toggle('active');
+    }
+</script>
+
+{% endblock %}

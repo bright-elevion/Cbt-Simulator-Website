@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Mock Exams · PrepCampus Premium{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='premium.css') }}">
+{% endblock %}
+
+{% block content %}
+{% set page_mode = mode|default('config', true) %}
+<div class="premium-dashboard-page mock-exams-page">
+    <header class="premium-page-heading">
+        <div>
+            <span class="premium-eyebrow">Premium exam simulator</span>
+            <h1>Mock Exams</h1>
+            <p>Build exam stamina with a timed, server-scored session that records your performance for CampusMate.</p>
+        </div>
+        <a href="{{ url_for('premium_dashboard') }}" class="premium-button secondary"><i class="fas fa-arrow-left" aria-hidden="true"></i> Dashboard</a>
+    </header>
+
+    {% if page_mode == 'exam' %}
+    <section class="mock-exam-shell premium-panel" data-session-id="{{ exam.id }}">
+        <div class="mock-exam-topbar">
+            <div><span class="premium-eyebrow">{{ exam.title }}</span><h2>{{ exam.course_codes|join(' · ') }}</h2><span id="mock-exam-save-state" class="mock-save-state"><i class="fas fa-cloud" aria-hidden="true"></i> Answers autosave</span></div>
+            <div class="mock-exam-timer" id="mock-exam-timer" aria-live="polite"><i class="fas fa-stopwatch" aria-hidden="true"></i> --:--</div>
+        </div>
+        <div class="adaptive-progress-track"><span id="mock-progress-bar"></span></div>
+        <div class="mock-exam-layout">
+            <aside class="mock-question-nav" aria-label="Question navigation"><span class="premium-eyebrow">Questions</span><div id="mock-question-nav-grid"></div><p id="mock-answer-count">0/{{ questions|length }} answered</p></aside>
+            <main class="mock-question-area"><div id="mock-question-shell"></div><div class="mock-question-actions"><button type="button" id="mock-prev" class="premium-button secondary" disabled><i class="fas fa-arrow-left" aria-hidden="true"></i> Previous</button><button type="button" id="mock-next" class="premium-button">Next <i class="fas fa-arrow-right" aria-hidden="true"></i></button></div><p id="mock-exam-error" class="premium-form-error" role="alert" hidden></p></main>
+        </div>
+        <div class="mock-submit-bar"><span>When you finish, your score is calculated securely on the server.</span><button type="button" id="mock-submit" class="premium-button danger"><i class="fas fa-flag-checkered" aria-hidden="true"></i> Submit exam</button></div>
+    </section>
+    {% elif page_mode == 'result' %}
+    <section class="mock-result-summary premium-panel">
+        <span class="premium-eyebrow">Exam submitted</span>
+        <h2>{{ exam.title }}</h2>
+        <div class="mock-result-score"><strong>{{ exam.score or 0 }}/{{ exam.total or 0 }}</strong><span>server-scored result</span></div>
+        <div class="adaptive-result-kpis"><div><strong>{{ ((exam.score or 0) / (exam.total or 1) * 100)|round|int }}%</strong><span>accuracy</span></div><div><strong>{{ exam.total or 0 }}</strong><span>questions</span></div><div><strong>{{ exam.course_codes|length }}</strong><span>courses</span></div></div>
+        <div class="mock-result-actions"><a href="{{ url_for('mock_exams') }}" class="premium-button"><i class="fas fa-rotate" aria-hidden="true"></i> Configure another exam</a><a href="{{ url_for('performance_dashboard') }}" class="premium-button secondary">View performance</a></div>
+    </section>
+    <section class="premium-dashboard-section"><div class="premium-section-heading"><div><span class="premium-eyebrow">Review signal</span><h2>What to do next</h2><p>Your exam attempt has been added to your premium learning history. Revisit missed topics in Mistake Notebook or let Adaptive Practice target them.</p></div></div><div class="premium-tool-grid"><a href="{{ url_for('mistake_notebook') }}" class="premium-tool-card"><i class="fas fa-book-open" aria-hidden="true"></i><strong>Mistake Notebook</strong><span>Review missed questions.</span></a><a href="{{ url_for('adaptive_practice') }}" class="premium-tool-card"><i class="fas fa-bolt" aria-hidden="true"></i><strong>Adaptive Practice</strong><span>Target the next weakness.</span></a></div></section>
+    {% else %}
+    <section class="mock-config-grid">
+        <article class="premium-panel mock-config-card">
+            <span class="premium-eyebrow">Create a controlled challenge</span>
+            <h2>Configure your mock exam</h2>
+            <p class="premium-muted">Questions are selected from your chosen courses and the session can be resumed after a refresh.</p>
+            <label class="premium-field-label">Courses <span>Select one or more</span></label>
+            <div class="mock-course-checks">
+                {% for course in courses %}<label class="mock-course-check"><input type="checkbox" name="mock-course" value="{{ course }}"><span>{{ course }}</span></label>{% else %}<p class="premium-muted">No course history is available yet. Complete a premium practice set or configure your CampusMate courses first.</p>{% endfor %}
+            </div>
+            <label class="premium-field-label" for="mock-count">Question count</label><select id="mock-count" class="premium-select"><option value="10">10 questions · Focused</option><option value="20">20 questions · Standard</option><option value="30" selected>30 questions · Full practice</option><option value="50">50 questions · Extended</option></select>
+            <label class="premium-field-label" for="mock-duration">Time limit</label><select id="mock-duration" class="premium-select"><option value="20">20 minutes</option><option value="40" selected>40 minutes</option><option value="60">60 minutes</option><option value="90">90 minutes</option><option value="120">120 minutes</option></select>
+            <button type="button" id="start-mock" class="premium-button full-width"{% if active_exam %} disabled{% endif %}><i class="fas fa-play" aria-hidden="true"></i> {{ 'Resume the active exam above' if active_exam else 'Start mock exam' }}</button>
+            <p id="mock-config-error" class="premium-form-error" role="alert" hidden></p>
+        </article>
+        <aside class="premium-panel mock-config-side">
+            <div class="adaptive-method-icon"><i class="fas fa-shield-halved" aria-hidden="true"></i></div><span class="premium-eyebrow">Exam integrity</span><h2>Your result means something</h2>
+            <ul class="premium-check-list"><li><i class="fas fa-check" aria-hidden="true"></i> Correct answers are never trusted from the browser.</li><li><i class="fas fa-check" aria-hidden="true"></i> Refreshes do not erase a saved active session.</li><li><i class="fas fa-check" aria-hidden="true"></i> Completion updates your performance history.</li></ul>
+        </aside>
+    </section>
+    {% if active_exam %}<section class="premium-panel mock-resume-card"><div><span class="premium-eyebrow">Active session</span><h2>{{ active_exam.title }}</h2><p>{{ active_exam.course_codes|join(' · ') }} · {{ active_exam.question_ids|length }} questions</p></div><a href="{{ url_for('mock_exam_session', session_id=active_exam.id) }}" class="premium-button"><i class="fas fa-play" aria-hidden="true"></i> Resume exam</a></section>{% endif %}
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% set page_mode = mode|default('config', true) %}
+{% set exam_data = exam|default({}, true) %}
+<script src="{{ url_for('static', filename='question-renderer.js') }}"></script>
+<script>
+(() => {
+    const mode = {{ page_mode|tojson }};
+    const errorBox = document.getElementById('mock-config-error');
+    const showError = (element, message) => { if (element) { element.textContent = message; element.hidden = false; } };
+    if (mode === 'config') {
+        const start = document.getElementById('start-mock');
+        if (!start) return;
+        start.addEventListener('click', async () => {
+            if (errorBox) errorBox.hidden = true;
+            const courses = [...document.querySelectorAll('input[name="mock-course"]:checked')].map((input) => input.value);
+            if (!courses.length) { showError(errorBox, 'Select at least one course before starting.'); return; }
+            start.disabled = true; start.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Creating exam';
+            try {
+                const response = await fetch('{{ url_for('start_mock_exam') }}', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({courses, question_count: document.getElementById('mock-count').value, duration_minutes: document.getElementById('mock-duration').value})});
+                const payload = await response.json();
+                if (!response.ok || !payload.success) throw new Error(payload.error || 'We could not create this exam.');
+                window.location.href = payload.redirect_url;
+            } catch (error) { showError(errorBox, error.message || 'We could not create this exam.'); start.disabled = false; start.innerHTML = '<i class="fas fa-play" aria-hidden="true"></i> Start mock exam'; }
+        });
+        return;
+    }
+    if (mode !== 'exam') return;
+    const sessionId = document.querySelector('.mock-exam-shell')?.dataset.sessionId;
+    const questions = {{ (questions|default([], true))|tojson }};
+    const initialAnswers = {{ (exam_data.answers|default({}, true))|tojson }};
+    const answers = {...initialAnswers}; let index = 0; let submitting = false;
+    const shell = document.getElementById('mock-question-shell'); const errorBoxExam = document.getElementById('mock-exam-error');
+    function render() {
+        const q = questions[index]; if (!q) return;
+        shell.innerHTML = `<div class="adaptive-question-meta"><span>${q.course_code || 'Course'}</span><span>${q.topic || 'Core concepts'}</span></div><div id="mock-question-text" class="structured-question-text"></div><div class="adaptive-options" role="group" aria-label="Answer options"></div>`;
+        const optionsWrap = shell.querySelector('.adaptive-options'); const optionEls = [];
+        ['A','B','C','D'].forEach((letter) => { const button = document.createElement('button'); button.type = 'button'; button.className = 'adaptive-option'; button.dataset.option = letter; button.innerHTML = `<span class="adaptive-option-letter">${letter}</span><span class="adaptive-option-text"></span>`; optionsWrap.appendChild(button); optionEls.push(button.querySelector('.adaptive-option-text')); button.addEventListener('click', () => saveAnswer(q, letter, button)); });
+        if (window.PrepCampusQuestionRenderer) window.PrepCampusQuestionRenderer.setQuestion(document.getElementById('mock-question-text'), optionEls, q);
+        optionsWrap.querySelectorAll('.adaptive-option').forEach((button) => { if (button.dataset.option === answers[String(q.id)]) button.classList.add('selected'); });
+        document.getElementById('mock-prev').disabled = index === 0; document.getElementById('mock-next').textContent = index === questions.length - 1 ? 'Last question' : 'Next'; document.getElementById('mock-progress-bar').style.width = `${((index + 1) / questions.length) * 100}%`; document.getElementById('mock-answer-count').textContent = `${Object.keys(answers).length}/${questions.length} answered`; document.querySelectorAll('.mock-question-number').forEach((button, i) => button.classList.toggle('active', i === index));
+    }
+    async function saveAnswer(q, value, button) {
+        if (submitting) return; answers[String(q.id)] = value; document.querySelectorAll('.adaptive-option').forEach((item) => item.classList.remove('selected')); button.classList.add('selected');
+        const saveState = document.getElementById('mock-exam-save-state'); saveState.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Saving';
+        try { const response = await fetch(`{{ url_for('save_mock_exam_answer', session_id='SESSION_ID') }}`.replace('SESSION_ID', sessionId), {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({question_id:q.id, answer:value})}); const payload = await response.json(); if (!response.ok || !payload.success) throw new Error(payload.error || 'Answer could not be saved.'); saveState.innerHTML = '<i class="fas fa-cloud" aria-hidden="true"></i> Saved'; } catch (error) { delete answers[String(q.id)]; saveState.innerHTML = '<i class="fas fa-triangle-exclamation" aria-hidden="true"></i> Not saved'; showError(errorBoxExam, error.message || 'Your answer could not be saved.'); }
+    }
+    async function submitExam() {
+        if (submitting) return; if (!confirm('Submit this mock exam now? You cannot change answers after submission.')) return; submitting = true; const button = document.getElementById('mock-submit'); button.disabled = true; button.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Submitting';
+        try { const response = await fetch(`{{ url_for('submit_mock_exam', session_id='SESSION_ID') }}`.replace('SESSION_ID', sessionId), {method:'POST'}); const payload = await response.json(); if (!response.ok || !payload.success) throw new Error(payload.error || 'We could not submit this exam.'); window.location.href = payload.redirect_url; } catch (error) { submitting = false; button.disabled = false; button.innerHTML = '<i class="fas fa-flag-checkered" aria-hidden="true"></i> Submit exam'; showError(errorBoxExam, error.message || 'We could not submit this exam.'); }
+    }
+    const nav = document.getElementById('mock-question-nav-grid'); questions.forEach((q, i) => { const button = document.createElement('button'); button.type = 'button'; button.className = 'mock-question-number'; button.textContent = i + 1; button.addEventListener('click', () => { index = i; render(); }); nav.appendChild(button); });
+    document.getElementById('mock-prev').addEventListener('click', () => { if (index > 0) { index -= 1; render(); } }); document.getElementById('mock-next').addEventListener('click', () => { if (index < questions.length - 1) { index += 1; render(); } }); document.getElementById('mock-submit').addEventListener('click', submitExam); render();
+    const deadline = new Date({{ (deadline_iso|default('', true))|tojson }}).getTime(); const timer = document.getElementById('mock-exam-timer'); let expired = false; const tick = () => { const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000)); const minutes = Math.floor(remaining / 60); const seconds = remaining % 60; timer.innerHTML = `<i class="fas fa-stopwatch" aria-hidden="true"></i> ${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`; if (remaining <= 0 && !expired) { expired = true; timer.classList.add('is-expired'); submitExam(); } }; tick(); window.setInterval(tick, 1000);
+})();
+</script>
+{% endblock %}

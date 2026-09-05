@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+
+{% block title %}CGPA Calculator | PrepCampus Premium{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='premium.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="premium-page premium-cgpa-page">
+    <div class="premium-page-heading cgpa-page-heading">
+        <div>
+            <span class="premium-eyebrow"><i class="fas fa-calculator" aria-hidden="true"></i> Premium tool</span>
+            <h1>CGPA Calculator</h1>
+            <p>Calculate your cumulative grade point average with a clear 5-point grading workflow.</p>
+        </div>
+        <a href="{{ url_for('premium') }}" class="premium-button secondary"><i class="fas fa-arrow-left" aria-hidden="true"></i> Back to tools</a>
+    </div>
+
+    <div class="cgpa-layout">
+        <section class="ai-card cgpa-calculator-card" aria-labelledby="cgpa-form-heading">
+            <div class="ai-card-heading">
+                <div>
+                    <span class="premium-eyebrow">Course breakdown</span>
+                    <h2 id="cgpa-form-heading">Enter your results</h2>
+                </div>
+                <span class="premium-badge">5-point scale</span>
+            </div>
+            <p class="cgpa-helper">Add each course, its credit unit, and the grade you earned. Your CGPA is calculated as total quality points divided by total credit units.</p>
+
+            {% if errors %}
+            <div class="ai-error cgpa-message" role="alert">
+                <i class="fas fa-circle-exclamation" aria-hidden="true"></i>
+                <div>
+                    <strong>Please review your entries</strong>
+                    <ul>
+                        {% for error in errors %}<li>{{ error }}</li>{% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+
+            <form method="post" id="cgpa-form" novalidate>
+                <div class="cgpa-table-wrap">
+                    <div class="cgpa-table-header" aria-hidden="true">
+                        <span>Course name</span>
+                        <span>Course code</span>
+                        <span>Credit units</span>
+                        <span>Grade</span>
+                        <span>Remove</span>
+                    </div>
+                    <div id="cgpa-course-rows">
+                        {% if rows %}
+                            {% for row in rows %}
+                            <div class="cgpa-course-row">
+                                <label class="sr-only" for="course-name-{{ loop.index }}">Course {{ loop.index }} name</label>
+                                <input id="course-name-{{ loop.index }}" name="course_name[]" type="text" value="{{ row.name|e }}" placeholder="e.g. Mathematics" maxlength="80" required>
+                                <label class="sr-only" for="course-code-{{ loop.index }}">Course {{ loop.index }} code</label>
+                                <input id="course-code-{{ loop.index }}" name="course_code[]" type="text" value="{{ row.code|e }}" placeholder="e.g. GST 101" maxlength="20" required>
+                                <label class="sr-only" for="credit-units-{{ loop.index }}">Course {{ loop.index }} credit units</label>
+                                <input id="credit-units-{{ loop.index }}" name="credit_units[]" type="number" value="{{ row.units|e }}" min="1" max="10" step="1" placeholder="3" required>
+                                <label class="sr-only" for="grade-{{ loop.index }}">Course {{ loop.index }} grade</label>
+                                <select id="grade-{{ loop.index }}" name="grade[]" required>
+                                    <option value="">Select grade</option>
+                                    {% for item in grade_scale %}<option value="{{ item.grade }}"{% if row.grade == item.grade %} selected{% endif %}>{{ item.grade }} — {{ item.point }} points</option>{% endfor %}
+                                </select>
+                                <button type="button" class="cgpa-remove-row" aria-label="Remove course {{ loop.index }}"><i class="fas fa-trash-can" aria-hidden="true"></i></button>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="cgpa-course-row">
+                                <label class="sr-only" for="course-name-1">Course 1 name or code</label>
+                                <input id="course-name-1" name="course_name[]" type="text" placeholder="e.g. Introduction to Biology" maxlength="80" required>
+                                <label class="sr-only" for="course-code-1">Course 1 code</label>
+                                <input id="course-code-1" name="course_code[]" type="text" placeholder="e.g. BIO 101" maxlength="20" required>
+                                <label class="sr-only" for="credit-units-1">Course 1 credit units</label>
+                                <input id="credit-units-1" name="credit_units[]" type="number" min="1" max="10" step="1" placeholder="3" required>
+                                <label class="sr-only" for="grade-1">Course 1 grade</label>
+                                <select id="grade-1" name="grade[]" required>
+                                    <option value="">Select grade</option>
+                                    {% for item in grade_scale %}<option value="{{ item.grade }}">{{ item.grade }} — {{ item.point }} points</option>{% endfor %}
+                                </select>
+                                <button type="button" class="cgpa-remove-row" aria-label="Remove course 1"><i class="fas fa-trash-can" aria-hidden="true"></i></button>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="cgpa-form-actions">
+                    <button type="button" class="premium-button secondary" id="cgpa-add-row"><i class="fas fa-plus" aria-hidden="true"></i> Add course</button>
+                    <button type="submit" class="premium-button"><i class="fas fa-calculator" aria-hidden="true"></i> Calculate CGPA</button>
+                </div>
+                <p class="cgpa-limit-note"><i class="fas fa-shield-halved" aria-hidden="true"></i> You can add up to 30 courses. Your entries are used only for this calculation.</p>
+            </form>
+        </section>
+
+        <aside class="cgpa-side-column">
+            {% if calculation %}
+            <section class="cgpa-result-card" aria-labelledby="cgpa-result-heading" role="status">
+                <span class="premium-eyebrow">Your result</span>
+                <h2 id="cgpa-result-heading">{{ calculation.cgpa }}</h2>
+                <p class="cgpa-classification">{{ calculation.classification }}</p>
+                <div class="cgpa-result-stats">
+                    <div><strong>{{ calculation.total_units }}</strong><span>Total units</span></div>
+                    <div><strong>{{ calculation.total_quality_points }}</strong><span>Quality points</span></div>
+                </div>
+                <p class="cgpa-result-note">Keep this result as a baseline, then use your Premium performance insights to plan your next improvement.</p>
+                <div class="cgpa-breakdown" aria-label="Course calculation breakdown">
+                    <table>
+                        <thead><tr><th>Course</th><th>Units</th><th>Grade</th><th>Quality points</th></tr></thead>
+                        <tbody>
+                            {% for course in calculation.courses %}
+                            <tr>
+                                <td><strong>{{ course.code|e }}</strong><br>{{ course.name|e }}</td>
+                                <td>{{ course.units }}</td>
+                                <td>{{ course.grade }}</td>
+                                <td>{{ course.quality_points }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            {% else %}
+            <section class="cgpa-result-card cgpa-result-card--empty" aria-labelledby="cgpa-result-heading">
+                <span class="cgpa-empty-icon"><i class="fas fa-chart-pie" aria-hidden="true"></i></span>
+                <h2 id="cgpa-result-heading">Your CGPA will appear here</h2>
+                <p>Add your course details and calculate when you are ready.</p>
+            </section>
+            {% endif %}
+
+            <section class="ai-card cgpa-scale-card" aria-labelledby="cgpa-scale-heading">
+                <div class="ai-card-heading"><h2 id="cgpa-scale-heading">5-point grading scale</h2></div>
+                <div class="cgpa-scale-list">
+                    {% for item in grade_scale %}
+                    <div><strong>{{ item.grade }}</strong><span>{{ item.range }}%</span><b>{{ item.point }}</b></div>
+                    {% endfor %}
+                </div>
+                <p class="cgpa-scale-note">Confirm your institution’s grading policy if its grade bands differ from this standard scale.</p>
+            </section>
+        </aside>
+    </div>
+</div>
+
+<script>
+(() => {
+    const rowsContainer = document.getElementById('cgpa-course-rows');
+    const addButton = document.getElementById('cgpa-add-row');
+    if (!rowsContainer || !addButton) return;
+
+    const gradeOptions = `
+        <option value="">Select grade</option>
+        <option value="A">A — 5.0 points</option>
+        <option value="B">B — 4.0 points</option>
+        <option value="C">C — 3.0 points</option>
+        <option value="D">D — 2.0 points</option>
+        <option value="E">E — 1.0 points</option>
+        <option value="F">F — 0.0 points</option>`;
+
+    const updateRowLabels = () => {
+        rowsContainer.querySelectorAll('.cgpa-course-row').forEach((row, index) => {
+            const number = index + 1;
+            row.querySelectorAll('label').forEach((label) => {
+                label.textContent = `Course ${number}`;
+                if (label.htmlFor.includes('course-name')) label.htmlFor = `course-name-${number}`;
+                if (label.htmlFor.includes('course-code')) label.htmlFor = `course-code-${number}`;
+                if (label.htmlFor.includes('credit-units')) label.htmlFor = `credit-units-${number}`;
+                if (label.htmlFor.includes('grade')) label.htmlFor = `grade-${number}`;
+            });
+            row.querySelector('input[name="course_name[]"]').id = `course-name-${number}`;
+            row.querySelector('input[name="course_code[]"]').id = `course-code-${number}`;
+            row.querySelector('input[name="credit_units[]"]').id = `credit-units-${number}`;
+            row.querySelector('select[name="grade[]"]').id = `grade-${number}`;
+            row.querySelector('.cgpa-remove-row').setAttribute('aria-label', `Remove course ${number}`);
+        });
+    };
+
+    addButton.addEventListener('click', () => {
+        if (rowsContainer.children.length >= 30) return;
+        const row = document.createElement('div');
+        row.className = 'cgpa-course-row';
+        row.innerHTML = `
+            <label class="sr-only">Course name or code</label>
+            <input name="course_name[]" type="text" placeholder="e.g. Introduction to Biology" maxlength="80" required>
+            <label class="sr-only">Course code</label>
+            <input name="course_code[]" type="text" placeholder="e.g. BIO 101" maxlength="20" required>
+            <label class="sr-only">Credit units</label>
+            <input name="credit_units[]" type="number" min="1" max="10" step="1" placeholder="3" required>
+            <label class="sr-only">Grade</label>
+            <select name="grade[]" required>${gradeOptions}</select>
+            <button type="button" class="cgpa-remove-row" aria-label="Remove course"><i class="fas fa-trash-can" aria-hidden="true"></i></button>`;
+        rowsContainer.appendChild(row);
+        updateRowLabels();
+        row.querySelector('input').focus();
+    });
+
+    rowsContainer.addEventListener('click', (event) => {
+        const removeButton = event.target.closest('.cgpa-remove-row');
+        if (!removeButton) return;
+        if (rowsContainer.children.length === 1) {
+            rowsContainer.querySelectorAll('input, select').forEach((field) => { field.value = ''; });
+            return;
+        }
+        removeButton.closest('.cgpa-course-row').remove();
+        updateRowLabels();
+    });
+
+    updateRowLabels();
+})();
+</script>
+{% endblock %}

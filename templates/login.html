@@ -6,20 +6,12 @@
 <div class="header university-header">
     <div class="university-info">
         <a href="{{ url_for('index') }}" class="back-button"><i class="fas fa-arrow-left"></i></a>
-        <h1 class="university-name">Login</h1>
+        <h1 class="university-name">Login To PrepCampus</h1>
     </div>
 </div>
 
 <main class="content">
-    <div class="auth-container">
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            {% for message in messages %}
-              <div class="alert alert-warning">{{ message }}</div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
-        
+    <div class="auth-container"> 
         <div class="login-options">
             <h2>Hey, Welcome</h2>
             <p>Please sign in to continue</p>
@@ -29,16 +21,39 @@
                     <label for="email">Email Address</label>
                     <input type="email" name="email" id="email" class="form-control" placeholder="Enter email address" required>
                 </div>
-                <div class="form-group">
+                <div class="form-group password-field">
                     <label for="password">Password</label>
                     <input type="password" name="password" id="password" class="form-control" placeholder="e.g xxxxxxxx" required>
+                    <button type="button" id="togglePassword">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
+
+                    <div class="forgot-password">
+                        <a href="{{ url_for('forgot_password') }}" style="color: red; margin-bottom: 5px">Forgot password?</a>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-primary">Login</button>
+                
+                <button type="submit" class="btn btn-primary logins">Login</button>
             </form>
 
             <p class="auth-switch">Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
         </div>
     </div>
 </main>
+
+<script>
+const password = document.getElementById("password");
+const togglePassword = document.getElementById("togglePassword");
+
+togglePassword.addEventListener("click", function () {
+    if (password.type === "password") {
+        password.type = "text";
+        this.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+    } else {
+        password.type = "password";
+        this.innerHTML = '<i class="fa-solid fa-eye"></i>';
+    }
+});
+</script>
 
 {% endblock %}

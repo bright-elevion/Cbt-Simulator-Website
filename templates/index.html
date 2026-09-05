@@ -1,58 +1,177 @@
 {% extends "base.html" %}
 
-{% block title %}Home - PrepCampus CBT{% endblock %}
+{% block title %}PrepCampus CBT | Practice Smarter{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
+{% endblock %}
 
 {% block content %}
-<!-- Header -->
-<header class="header university-header">
-    <div class="university-info home-logo-container">
-        <img src="{{ url_for('static', filename='prepcampus_logo.png') }}" alt="PrepCampus Logo" class="university-logo home-logo">
+<div class="home-page">
+    <section class="home-hero" aria-labelledby="home-heading">
+        <div class="home-hero-copy">
+            <span class="home-eyebrow"><i class="fas fa-graduation-cap" aria-hidden="true"></i> University CBT preparation</span>
+            <h1 id="home-heading">Practice smarter.<br><span>Score higher.</span></h1>
+            <p>Prepare with realistic computer-based tests, clear explanations, and focused study tools built to help you feel ready on exam day.</p>
+            <div class="home-actions">
+                <a href="{{ url_for('free_courses') }}" class="home-action primary"><i class="fas fa-play" aria-hidden="true"></i> Start free practice</a>
+                <a href="{{ url_for('premium') }}" class="home-action secondary"><i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i> Explore AI tools</a>
+            </div>
+            <div class="home-hero-note" aria-label="Platform benefits">
+                <span><i class="fas fa-circle-check" aria-hidden="true"></i> No setup required</span>
+                <span><i class="fas fa-mobile-screen-button" aria-hidden="true"></i> Works on mobile</span>
+                <span><i class="fas fa-clock" aria-hidden="true"></i> Exam-style timing</span>
+            </div>
+        </div>
+
+        <aside class="home-hero-visual" aria-label="PrepCampus study workspace">
+            <div class="home-visual-top">
+                <span class="home-visual-badge"><i class="fas fa-sparkles" aria-hidden="true"></i> PrepCampus AI</span>
+                <span class="home-visual-icon"><i class="fas fa-chart-line" aria-hidden="true"></i></span>
+            </div>
+            <img src="{{ url_for('static', filename='prepcampus_logo.png') }}" class="home-hero-logo" alt="PrepCampus logo">
+            <div class="home-visual-bottom">
+                <h2>Your focused study space</h2>
+                <p>Move from practice to progress with one simple, familiar experience.</p>
+            </div>
+        </aside>
+    </section>
+
+    <section class="home-section" aria-labelledby="experience-heading">
+        <div class="home-section-heading">
+            <div>
+                <h2 id="experience-heading">Choose your experience</h2>
+                <p>Start with the path that matches what you need today.</p>
+            </div>
+        </div>
+        <div class="home-card-grid">
+            <a href="{{ url_for('free_courses') }}" class="home-card">
+                <span class="home-card-icon"><i class="fas fa-graduation-cap" aria-hidden="true"></i></span>
+                <span>
+                    <h3>Free CBT practice</h3>
+                    <p>Attempt realistic questions with a focused exam timer and instant results.</p>
+                </span>
+                <i class="fas fa-arrow-right home-card-arrow" aria-hidden="true"></i>
+            </a>
+            <a href="{{ url_for('paid_courses') }}" class="home-card premium">
+                <span class="home-card-icon"><i class="fas fa-crown" aria-hidden="true"></i></span>
+                <span>
+                    <h3>Premium CBT Simulator</h3>
+                    <p>Unlock full-course CBT practice, AI-generated questions, and performance insights in one premium workspace.</p>
+                </span>
+                <i class="fas fa-arrow-right home-card-arrow" aria-hidden="true"></i>
+            </a>
+        </div>
+    </section>
+
+    <section class="home-section" aria-labelledby="resources-heading">
+        <div class="home-section-heading">
+            <div>
+                <h2 id="resources-heading">Everything you need to prepare</h2>
+                <p>Use the free tools below to practise, review, and build confidence before exam day.</p>
+            </div>
+        </div>
+        <div class="home-resource-grid home-resource-grid--expanded">
+            <a href="{{ url_for('free_courses') }}" class="home-resource">
+                <span class="home-resource-icon"><i class="fas fa-stopwatch" aria-hidden="true"></i></span>
+                <h3>Timed CBT practice</h3>
+                <p>Choose a course and practise with a realistic exam-style timer.</p>
+                <i class="fas fa-arrow-right home-card-arrow" aria-hidden="true"></i>
+            </a>
+            <a href="{{ url_for('study_courses') }}" class="home-resource">
+                <span class="home-resource-icon"><i class="fas fa-book-open" aria-hidden="true"></i></span>
+                <h3>Study questions</h3>
+                <p>Learn at your own pace with questions, answers, and explanations.</p>
+                <i class="fas fa-arrow-right home-card-arrow" aria-hidden="true"></i>
+            </a>
+            <a href="{{ url_for('review') }}" class="home-resource">
+                <span class="home-resource-icon"><i class="fas fa-list-check" aria-hidden="true"></i></span>
+                <h3>Review solutions</h3>
+                <p>Revisit your latest answers and understand where to improve.</p>
+                <i class="fas fa-arrow-right home-card-arrow" aria-hidden="true"></i>
+            </a>
+            <a href="{{ url_for('result') }}" class="home-resource">
+                <span class="home-resource-icon"><i class="fas fa-chart-simple" aria-hidden="true"></i></span>
+                <h3>Check your results</h3>
+                <p>See your latest score and use it to plan your next study session.</p>
+                <i class="fas fa-arrow-right home-card-arrow" aria-hidden="true"></i>
+            </a>
+            <a href="{{ url_for('leaderboard') }}" class="home-resource">
+                <span class="home-resource-icon"><i class="fas fa-trophy" aria-hidden="true"></i></span>
+                <h3>Leaderboard</h3>
+                <p>Track your standing and stay motivated alongside other learners.</p>
+                <i class="fas fa-arrow-right home-card-arrow" aria-hidden="true"></i>
+            </a>
+        </div>
+
+        <div class="home-premium-prompt" aria-labelledby="premium-prompt-heading">
+            <div class="home-premium-prompt-icon"><i class="fas fa-crown" aria-hidden="true"></i></div>
+            <div class="home-premium-prompt-copy">
+                <span class="home-eyebrow">A smarter way to prepare</span>
+                <h3 id="premium-prompt-heading">Unlock the AI study workspace</h3>
+                <p>Go beyond practice with guided support, personalised questions, and clear direction on what to study next.</p>
+            </div>
+            <a href="{{ url_for('premium') }}" class="home-action secondary"><i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i> Explore Premium</a>
+        </div>
+
+        <div class="home-premium-preview" aria-labelledby="premium-preview-heading">
+            <div class="home-premium-preview-heading">
+                <div>
+                    <span class="home-eyebrow">Premium tools</span>
+                    <h3 id="premium-preview-heading">Built for focused progress</h3>
+                </div>
+                <span class="home-premium-preview-note"><i class="fas fa-lock" aria-hidden="true"></i> Included with Premium</span>
+            </div>
+            <div class="home-premium-tool-grid">
+                <a href="{{ url_for('premium') }}" class="home-premium-tool">
+                    <span class="home-premium-tool-icon"><i class="fas fa-comments" aria-hidden="true"></i></span>
+                    <span class="home-premium-tool-copy">
+                        <strong>AI Study Coach</strong>
+                        <span>Ask questions, get explanations, and study with more confidence.</span>
+                    </span>
+                    <i class="fas fa-arrow-right home-card-arrow" aria-hidden="true"></i>
+                </a>
+                <a href="{{ url_for('premium') }}" class="home-premium-tool">
+                    <span class="home-premium-tool-icon"><i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i></span>
+                    <span class="home-premium-tool-copy">
+                        <strong>Custom AI Questions</strong>
+                        <span>Generate targeted practice for the course or topic you choose.</span>
+                    </span>
+                    <i class="fas fa-arrow-right home-card-arrow" aria-hidden="true"></i>
+                </a>
+                <a href="{{ url_for('premium') }}" class="home-premium-tool">
+                    <span class="home-premium-tool-icon"><i class="fas fa-chart-line" aria-hidden="true"></i></span>
+                    <span class="home-premium-tool-copy">
+                        <strong>Weakness Analysis</strong>
+                        <span>See where your scores need attention and plan your next move.</span>
+                    </span>
+                    <i class="fas fa-arrow-right home-card-arrow" aria-hidden="true"></i>
+                </a>
+                <a href="{{ url_for('premium') }}" class="home-premium-tool">
+                    <span class="home-premium-tool-icon"><i class="fas fa-crown" aria-hidden="true"></i></span>
+                    <span class="home-premium-tool-copy">
+                        <strong>Premium CBT Simulator</strong>
+                        <span>Practise with a deeper, more focused exam-preparation workspace.</span>
+                    </span>
+                    <i class="fas fa-arrow-right home-card-arrow" aria-hidden="true"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <div class="home-proof" aria-label="PrepCampus benefits">
+        <div class="home-proof-item"><i class="fas fa-stopwatch" aria-hidden="true"></i> Real CBT timer</div>
+        <div class="home-proof-item"><i class="fas fa-check-double" aria-hidden="true"></i> Detailed solutions</div>
+        <div class="home-proof-item"><i class="fas fa-chart-simple" aria-hidden="true"></i> Progress tracking</div>
+        <div class="home-proof-item"><i class="fas fa-mobile-screen" aria-hidden="true"></i> Mobile friendly</div>
     </div>
-</header>
 
-<!-- Main Content -->
-<main class="content">
-
-    <div class="simulator-links">
-        <!-- PrepCampus CBT Simulator (Free) -->
-        <a href="{{ url_for('free_courses') }}" class="sim-card free-sim">
-            <div class="sim-icon-wrapper">
-                <img src="{{ url_for('static', filename='prepcampus_logo.png') }}" alt="PrepCampus Logo" class="sim-logo">
-            </div>
-            <div class="sim-content">
-                <h3 class="sim-title">CBT Simulator</h3>
-                <p class="sim-desc">Great tool to practice for University questions CBT style (Limit: 10 questions/10 mins).</p>
-            </div>
-        </a>
-
-        <!-- PrepCampus CBT Simulator (Paid) -->
-        <a href="{{ url_for('paid_courses') }}" class="sim-card paid-sim">
-            <div class="sim-icon-wrapper">
-                <img src="{{ url_for('static', filename='prepcampus_logo.png') }}" alt="PrepCampus Logo" class="sim-logo">
-            </div>
-            <div class="sim-content">
-                <h3 class="sim-title">CBT Simulator (Paid)</h3>
-                <p class="sim-desc">Practice by using the exact university CBT Settings.</p>
-            </div>
-        </a>
-    </div>
-
-    <div class="quick-links-grid">
-        <!-- Study past question Card -->
-        <a href="{{ url_for('study_courses') }}" class="card video">
-            <span class="card-title">Study past question</span>
-            <div class="card-icon">
-                <i class="fas fa-play-circle"></i>
-            </div>
-        </a>
-
-        <!-- Course note Card -->
-        <a href="#" class="card novels">
-            <span class="card-title">Course note</span>
-            <div class="card-icon">
-                <i class="fas fa-book-open"></i>
-            </div>
-        </a>
-    </div>
-</main>
+    <section class="home-final-cta" aria-labelledby="final-cta-heading">
+        <div>
+            <h2 id="final-cta-heading">Your next score starts with one practice session.</h2>
+            <p>Choose a course and start building confidence today.</p>
+        </div>
+        <a href="{{ url_for('free_courses') }}" class="home-action"><i class="fas fa-arrow-right" aria-hidden="true"></i> Start practising</a>
+    </section>
+</div>
 {% endblock %}

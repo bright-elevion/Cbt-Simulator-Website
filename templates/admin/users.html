@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="admin-page">
+    <!-- HEADER SECTION -->
+    <div class="page-header">
+        <div class="header-content">
+            <div class="title-area">
+                <h1>User Management</h1>
+                <p>Manage registered users, monitor activity and control access</p>
+            </div>
+            <div class="header-actions">
+                <!-- In a real app, this would link to a registration form -->
+                <a href="{{ url_for('add_user') if 'add_user' in url_for.__globals__ else '#' }}" class="btn btn-primary">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <span>Add New User</span>
+                </a>
+                <button class="btn btn-outline" onclick="window.print()">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Print Report</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- SEARCH & FILTER BAR -->
+        <form method="GET" action="{{ url_for('admin_users') }}" class="filter-bar">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" name="search" value="{{ search or '' }}" placeholder="Search by name, email or ID...">
+            </div>
+            <div class="filter-options">
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <option value="">Status: All</option>
+                    <option value="Paid" {% if status == 'Paid' %}selected{% endif %}>Paid</option>
+                    <option value="Free" {% if status == 'Free' %}selected{% endif %}>Free</option>
+                    <option value="Suspended" {% if status == 'Suspended' %}selected{% endif %}>Suspended</option>
+                </select>
+                <select name="sort" class="form-select" onchange="this.form.submit()">
+                    <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Sort: Newest</option>
+                    <option value="score" {% if sort == 'score' %}selected{% endif %}>Top Score</option>
+                    <option value="attempts" {% if sort == 'attempts' %}selected{% endif %}>Most Attempts</option>
+                </select>
+                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                {% if search or status or sort != 'newest' %}
+                <a href="{{ url_for('admin_users') }}" class="btn btn-outline btn-sm">Clear</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- TABLE CARD -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">
+                <h3>All Users</h3>
+                <span class="count-badge">{{ users|length }} Total</span>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Status</th>
+                        <th>Attempts</th>
+                        <th>Avg Score</th>
+                        <th>Joined</th>
+                        <th class="text-right">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>
+                            <div class="user-cell">
+                                <div class="avatar">
+                                    {{ user.username[0]|upper }}
+                                </div>
+                                <div class="user-info">
+                                    <span class="username">{{ user.username }}</span>
+                                    <span class="email">{{ user.email }}</span>
+                                    <span class="user-id">#{{ user.id }}</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>
+                            <span class="badge 
+                                {% if user.status == 'Paid' %}success
+                                {% elif user.status == 'Suspended' %}danger
+                                {% else %}info{% endif %}">
+                                {{ user.status }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <div class="stat-cell">
+                                <span class="stat-val">{{ user.total_attempts }}</span>
+                                <span class="stat-label">Tests</span>
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="score-cell">
+                                <span class="score-val">{{ "%.1f"|format(user.avg_score) }}%</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: {{ user.avg_score }}%;"></div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="date-cell">
+                                <span class="date-val">{{ user.created_at.strftime('%b %d, %Y') if user.created_at else 'N/A' }}</span>
+                            </div>
+                        </td>
+
+                        <td class="actions">
+                            <div class="action-group">
+                                <a href="{{ url_for('user_details', user_id=user.id) }}" class="icon-btn" title="View">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                                
+                                <form method="POST" action="{{ url_for('suspend_user', user_id=user.id) }}" style="display:inline;">
+                                    <button class="icon-btn warning" title="Suspend"
+                                        onclick="return confirm('Suspend this user?')">
+                                        <i class="fa-solid fa-ban"></i>
+                                    </button>
+                                </form>
+
+                                <form method="POST" action="{{ url_for('delete_user', user_id=user.id) }}" style="display:inline;">
+                                    <button class="icon-btn danger" title="Delete"
+                                        onclick="return confirm('Delete this user?')">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">
+                            <i class="fa-solid fa-user-slash" style="font-size: 40px; margin-bottom: 10px; display: block;"></i>
+                            No users found matching your criteria.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* ... (Same styles as themed_user_management.html) ... */
+    :root {
+        --primary: #2563eb;
+        --primary-dark: #1d4ed8;
+        --background: #f8fafc;
+        --text: #0f172a;
+        --text-light: #64748b;
+        --border: #e2e8f0;
+        --white: #ffffff;
+    }
+
+    .admin-page {
+        padding: 30px;
+        background: var(--background);
+        color: var(--text);
+        font-family: 'Inter', sans-serif;
+    }
+
+    .page-header { margin-bottom: 30px; }
+    .header-content { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 20px; }
+    .title-area h1 { font-size: 28px; color: var(--text); margin: 0; }
+    .title-area p { color: var(--text-light); margin-top: 5px; }
+    .header-actions { display: flex; gap: 10px; }
+
+    .btn { padding: 10px 18px; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; transition: .3s; border: 1px solid transparent; display: flex; align-items: center; gap: 8px; text-decoration: none; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-outline { background: white; color: var(--text); border-color: var(--border); }
+    .btn-outline:hover { background: #f1f5f9; }
+
+    .filter-bar { display: flex; gap: 15px; background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--border); }
+    .search-box { position: relative; flex: 1; }
+    .search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-light); }
+    .search-box input { width: 100%; padding: 10px 10px 10px 35px; border-radius: 8px; border: 1px solid var(--border); outline: none; }
+    .filter-options { display: flex; gap: 10px; align-items: center; }
+    .form-select { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); background: white; color: var(--text); outline: none; }
+
+    .card { background: white; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 8px 20px rgba(0,0,0,.04); overflow: hidden; }
+    .card-header { padding: 20px 25px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+    .card-title { display: flex; align-items: center; gap: 10px; }
+    .card-title h3 { margin: 0; font-size: 18px; }
+    .count-badge { background: #f1f5f9; color: var(--text-light); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+
+    .table-wrapper { overflow-x: auto; }
+    .admin-table { width: 100%; border-collapse: collapse; }
+    .admin-table th { text-align: left; padding: 16px 25px; font-size: 13px; text-transform: uppercase; color: #94a3b8; background: #fafafa; border-bottom: 1px solid var(--border); }
+    .admin-table td { padding: 16px 25px; border-bottom: 1px solid #f1f5f9; }
+    .admin-table tr:hover { background: #f8fafc; }
+
+    .user-cell { display: flex; align-items: center; gap: 12px; }
+    .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+    .user-info { display: flex; flex-direction: column; }
+    .username { font-weight: 600; color: var(--text); }
+    .email { font-size: 12px; color: var(--text-light); }
+    .user-id { font-size: 11px; color: #cbd5e1; }
+
+    .badge { padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+    .badge.success { background: #dcfce7; color: #166534; }
+    .badge.danger { background: #fee2e2; color: #991b1b; }
+    .badge.info { background: #e0f2fe; color: #075985; }
+
+    .stat-cell { display: flex; flex-direction: column; }
+    .stat-val { font-weight: 600; }
+    .stat-label { font-size: 11px; color: var(--text-light); }
+    .score-cell { width: 100px; }
+    .score-val { font-weight: 600; font-size: 14px; display: block; margin-bottom: 4px; }
+    .progress-bar { height: 6px; background: #e2e8f0; border-radius: 10px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--primary); border-radius: 10px; }
+
+    .action-group { display: flex; gap: 8px; justify-content: flex-end; }
+    .icon-btn { width: 34px; height: 34px; border: none; border-radius: 8px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: .2s; color: var(--text-light); text-decoration: none; }
+    .icon-btn:hover { background: #e2e8f0; color: var(--text); }
+    .icon-btn.warning:hover { background: #fef3c7; color: #92400e; }
+    .icon-btn.danger:hover { background: #fee2e2; color: #991b1b; }
+
+    .text-right { text-align: right !important; }
+
+    @media (max-width: 768px) {
+        .admin-page { padding: 20px; }
+        .header-content { flex-direction: column; align-items: stretch; }
+        .filter-bar { flex-direction: column; }
+        .admin-table th, .admin-table td { padding: 12px 15px; }
+    }
+</style>
+{% endblock %}

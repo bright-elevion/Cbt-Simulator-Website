@@ -3,34 +3,555 @@
 {% block title %}Leaderboard - PrepCampus CBT{% endblock %}
 
 {% block content %}
-<div class="leaderboard-container">
-    <div class="leaderboard-header">
-        <i class="fas fa-trophy trophy-icon"></i>
-        <h2>Leaderboard</h2>
-        <p>Top performers across all courses</p>
-    </div>
 
-    <div class="leaderboard-list">
-        {% if top_scores %}
-            {% for score in top_scores %}
-            <div class="leaderboard-item {% if session.get('user_id') == score.user_id %}current-user{% endif %}">
-                <div class="rank">{{ loop.index }}</div>
-                <div class="user-info">
-                    <span class="username">{{ score.username }}</span>
-                    <span class="course-code">{{ score.course_code }}</span>
-                </div>
-                <div class="score-info">
-                    <span class="score-val">{{ score.score }}/{{ score.total }}</span>
-                    <span class="percentage">{{ (score.score / score.total * 100) | round(1) }}%</span>
-                </div>
+<div class="leaderboard-page">
+
+    <!-- Header -->
+    <section class="leaderboard-hero">
+
+        <div class="hero-icon">
+            <i class="fas fa-trophy"></i>
+        </div>
+
+        <h1>Leaderboard</h1>
+
+        <p>
+            Compete with other students and climb the rankings by getting
+            higher scores in CBT practice.
+        </p>
+
+    </section>
+
+
+    {% if top_scores %}
+
+    <!-- Top 3 Podium -->
+
+    <section class="top-three">
+
+        {% if top_scores|length > 1 %}
+        <div class="podium-card second">
+
+            <div class="medal silver">
+                <i class="fas fa-medal"></i>
             </div>
-            {% endfor %}
-        {% else %}
-            <div class="empty-state">
-                <p>No scores recorded yet. Be the first to top the board!</p>
-            </div>
+
+            <h3>{{ top_scores[1].username }}</h3>
+
+            <p>{{ top_scores[1].course_code }}</p>
+
+            <span>
+                {{ top_scores[1].score }}/{{ top_scores[1].total }}
+            </span>
+
+        </div>
         {% endif %}
-    </div>
-</div>
 
+
+        <div class="podium-card first">
+
+            <div class="crown">
+                <i class="fas fa-crown"></i>
+            </div>
+
+            <div class="medal gold">
+                <i class="fas fa-trophy"></i>
+            </div>
+
+            <h2>{{ top_scores[0].username }}</h2>
+
+            <p>{{ top_scores[0].course_code }}</p>
+
+            <span>
+                {{ top_scores[0].score }}/{{ top_scores[0].total }}
+            </span>
+
+        </div>
+
+
+        {% if top_scores|length > 2 %}
+        <div class="podium-card third">
+
+            <div class="medal bronze">
+                <i class="fas fa-medal"></i>
+            </div>
+
+            <h3>{{ top_scores[2].username }}</h3>
+
+            <p>{{ top_scores[2].course_code }}</p>
+
+            <span>
+                {{ top_scores[2].score }}/{{ top_scores[2].total }}
+            </span>
+
+        </div>
+        {% endif %}
+
+    </section>
+
+
+    <!-- Ranking List -->
+
+    <section class="ranking-section">
+
+        <div class="ranking-header">
+
+            <div>Rank</div>
+
+            <div>Student</div>
+
+            <div>Course</div>
+
+            <div>Score</div>
+
+            <div>Percentage</div>
+
+        </div>
+
+
+        {% for score in top_scores %}
+
+        <div class="ranking-row {% if session.get('user_id') == score.user_id %}my-score{% endif %}">
+
+            <div class="rank-number">
+
+                {% if loop.index == 1 %}
+                    🥇
+                {% elif loop.index == 2 %}
+                    🥈
+                {% elif loop.index == 3 %}
+                    🥉
+                {% else %}
+                    #{{ loop.index }}
+                {% endif %}
+
+            </div>
+
+            <div class="student-info">
+
+                <div class="avatar">
+
+                    {{ score.username[0]|upper }}
+
+                </div>
+
+                <div>
+
+                    <strong>{{ score.username }}</strong>
+
+                    {% if session.get('user_id') == score.user_id %}
+                        <span class="you-badge">You</span>
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+            <div>
+
+                {{ score.course_code }}
+
+            </div>
+
+            <div>
+
+                {{ score.score }}/{{ score.total }}
+
+            </div>
+
+            <div>
+
+                {{ (score.score / score.total * 100)|round(1) }}%
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </section>
+
+    {% else %}
+
+    <div class="empty-leaderboard">
+
+        <i class="fas fa-trophy"></i>
+
+        <h2>No Rankings Yet</h2>
+
+        <p>
+
+            Nobody has completed a CBT yet.
+
+            Be the first student to appear on the leaderboard.
+
+        </p>
+
+        <a href="{{ url_for('free_courses') }}" class="btn btn-primary">
+
+            Start Practicing
+
+        </a>
+
+    </div>
+
+    {% endif %}
+
+</div>
+<style>
+    /* ==========================================
+   LEADERBOARD PAGE
+========================================== */
+
+.leaderboard-page{
+    max-width:1200px;
+    margin:40px auto 100px;
+    padding:0 20px;
+}
+
+/* ==========================================
+   HERO
+========================================== */
+
+.leaderboard-hero{
+    background:linear-gradient(135deg,#2196f3,#1565c0);
+    color:#fff;
+    border-radius:28px;
+    padding:60px 40px;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 20px 50px rgba(33,150,243,.25);
+}
+
+.leaderboard-hero::before{
+    content:"";
+    position:absolute;
+    width:320px;
+    height:320px;
+    border-radius:50%;
+    background:rgba(255,255,255,.08);
+    top:-150px;
+    right:-120px;
+}
+
+.leaderboard-hero::after{
+    content:"";
+    position:absolute;
+    width:220px;
+    height:220px;
+    border-radius:50%;
+    background:rgba(255,255,255,.06);
+    bottom:-100px;
+    left:-70px;
+}
+
+.hero-icon{
+    width:90px;
+    height:90px;
+    background:#fff;
+    color:#2196f3;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    margin:auto;
+    font-size:40px;
+    box-shadow:0 10px 30px rgba(0,0,0,.15);
+}
+
+.leaderboard-hero h1{
+    margin-top:25px;
+    font-size:42px;
+    font-weight:700;
+}
+
+.leaderboard-hero p{
+    max-width:650px;
+    margin:15px auto 0;
+    opacity:.95;
+    line-height:1.8;
+}
+
+/* ==========================================
+   PODIUM
+========================================== */
+
+.top-three{
+    display:flex;
+    justify-content:center;
+    align-items:flex-end;
+    gap:25px;
+    margin-top:-60px;
+    position:relative;
+    z-index:5;
+}
+
+.podium-card{
+    background:#fff;
+    border-radius:24px;
+    padding:30px 25px;
+    width:270px;
+    text-align:center;
+    box-shadow:0 15px 40px rgba(0,0,0,.08);
+    transition:.35s;
+}
+
+.podium-card:hover{
+    transform:translateY(-8px);
+}
+
+.first{
+    transform:translateY(-30px);
+    border:3px solid #FFD54F;
+}
+
+.second{
+    border:2px solid #D6D6D6;
+}
+
+.third{
+    border:2px solid #d68f43;
+}
+
+.crown{
+    font-size:30px;
+    color:#f5b301;
+    margin-bottom:15px;
+}
+
+.medal{
+    width:70px;
+    height:70px;
+    border-radius:50%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    margin:auto;
+    color:#fff;
+    font-size:30px;
+}
+
+.gold{
+    background:#f7b500;
+}
+
+.silver{
+    background:#aab4be;
+}
+
+.bronze{
+    background:#b66a2d;
+}
+
+.podium-card h2,
+.podium-card h3{
+    margin-top:20px;
+    color:var(--text-dark);
+}
+
+.podium-card p{
+    color:#777;
+    margin:10px 0;
+}
+
+.podium-card span{
+    display:inline-block;
+    margin-top:15px;
+    padding:10px 18px;
+    border-radius:30px;
+    background:var(--light-blue);
+    color:var(--accent-blue);
+    font-weight:700;
+}
+
+/* ==========================================
+   RANKING TABLE
+========================================== */
+
+.ranking-section{
+    margin-top:50px;
+}
+
+.ranking-header{
+    display:grid;
+    grid-template-columns:90px 3fr 1fr 1fr 1fr;
+    background:#f5f8fc;
+    padding:18px 25px;
+    border-radius:18px;
+    font-weight:700;
+    color:#666;
+    margin-bottom:15px;
+}
+
+.ranking-row{
+    display:grid;
+    grid-template-columns:90px 3fr 1fr 1fr 1fr;
+    align-items:center;
+    padding:20px 25px;
+    background:#fff;
+    border-radius:18px;
+    margin-bottom:15px;
+    box-shadow:0 8px 20px rgba(0,0,0,.05);
+    transition:.3s;
+}
+
+.ranking-row:hover{
+    transform:translateY(-4px);
+    box-shadow:0 15px 30px rgba(0,0,0,.08);
+}
+
+.my-score{
+    border:2px solid var(--primary);
+    background:#f7fbff;
+}
+
+/* ==========================================
+   RANK
+========================================== */
+
+.rank-number{
+    font-size:22px;
+    font-weight:700;
+}
+
+/* ==========================================
+   STUDENT
+========================================== */
+
+.student-info{
+    display:flex;
+    align-items:center;
+    gap:15px;
+}
+
+.avatar{
+    width:52px;
+    height:52px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#2196f3,#1565c0);
+    color:#fff;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-weight:700;
+    font-size:20px;
+}
+
+.you-badge{
+    margin-left:10px;
+    background:#2196f3;
+    color:#fff;
+    padding:4px 10px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:600;
+}
+
+/* ==========================================
+   EMPTY STATE
+========================================== */
+
+.empty-leaderboard{
+    background:#fff;
+    padding:80px 40px;
+    text-align:center;
+    border-radius:25px;
+    box-shadow:0 10px 30px rgba(0,0,0,.06);
+}
+
+.empty-leaderboard i{
+    font-size:70px;
+    color:#f7b500;
+    margin-bottom:20px;
+}
+
+.empty-leaderboard h2{
+    margin-bottom:15px;
+    color:var(--text-dark);
+}
+
+.empty-leaderboard p{
+    color:#666;
+    margin-bottom:30px;
+}
+
+/* ==========================================
+   MOBILE
+========================================== */
+
+@media(max-width:900px){
+
+.top-three{
+    flex-direction:column;
+    align-items:center;
+    margin-top:30px;
+}
+
+.first{
+    transform:none;
+}
+
+.podium-card{
+    width:100%;
+    max-width:400px;
+}
+
+.ranking-header{
+    display:none;
+}
+
+.ranking-row{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:18px;
+    padding:25px;
+}
+
+.student-info{
+    width:100%;
+}
+
+.rank-number{
+    font-size:28px;
+}
+
+.leaderboard-hero{
+    padding:45px 25px;
+}
+
+.leaderboard-hero h1{
+    font-size:32px;
+}
+
+.hero-icon{
+    width:75px;
+    height:75px;
+    font-size:34px;
+}
+
+}
+
+@media(max-width:500px){
+
+.leaderboard-page{
+    padding:0 15px;
+}
+
+.leaderboard-hero{
+    border-radius:22px;
+}
+
+.podium-card{
+    padding:25px 20px;
+}
+
+.avatar{
+    width:46px;
+    height:46px;
+}
+
+}
+</style>
 {% endblock %}

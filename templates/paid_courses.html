@@ -39,7 +39,7 @@
             <span class="course-label">Physics</span>
         </a>
 
-        <a href="{{ url_for('configure_test', course='STA101', simulator='paid') }}" class="course-card">
+        <a href="{{ url_for('configure_test', course='STA111', simulator='paid') }}" class="course-card">
             <div class="course-icon" style="background: #96ceb4;">
                 <i class="fas fa-chart-bar"></i>
             </div>
@@ -72,12 +72,20 @@
             <span class="course-label">Communication in English I</span>
         </a>
 
-        <a href="{{ url_for('configure_test', course='COS 103', simulator='paid') }}" class="course-card">
+        <a href="{{ url_for('configure_test', course='COS103', simulator='paid') }}" class="course-card">
             <div class="course-icon" style="background: #6a4c93;">
                 <i class="fas fa-code"></i>
             </div>
             <span class="course-name">COS 103</span>
             <span class="course-label">Computer Science 103</span>
+        </a>
+
+        <a href="{{ url_for('ai_questions') }}" class="course-card ai-course-card" style="grid-column: 1 / -1; background: linear-gradient(135deg, #eef6ff, #ffffff); border: 1px solid #cfe3ff;">
+            <div class="course-icon" style="background: var(--primary);">
+                <i class="fas fa-wand-magic-sparkles"></i>
+            </div>
+            <span class="course-name">AI Question Generator</span>
+            <span class="course-label">Enter any course or topic.</span>
         </a>
     </div>
 

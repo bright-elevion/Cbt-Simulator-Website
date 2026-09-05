@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Learning Profile - PrepCampus Premium{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='premium.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="premium-dashboard-page learning-profile-page">
+    <div class="premium-page-heading">
+        <div>
+            <a href="{{ url_for('weakness_analysis') }}" class="premium-back-link"><i class="fas fa-arrow-left" aria-hidden="true"></i> Weakness Analysis</a>
+            <span class="premium-eyebrow">Your study intelligence</span>
+            <h1>Learning profile</h1>
+            <p>Signals from {{ total_attempts }} recorded question{{ '' if total_attempts == 1 else 's' }} help you choose better practice, not simply more practice.</p>
+        </div>
+        <span class="premium-status"><i class="fas fa-user-graduate" aria-hidden="true"></i> Personalised</span>
+    </div>
+
+    {% if total_attempts == 0 %}
+    <section class="ai-card weakness-empty-state"><div class="summary-icon"><i class="fas fa-seedling" aria-hidden="true"></i></div><div><h2>Your profile is ready to learn from you.</h2><p>Complete a signed-in practice session and review your answers to unlock strengths, weaknesses, confidence signals, and study recommendations.</p><a href="{{ url_for('free_courses') }}" class="premium-button">Start practising</a></div></section>
+    {% else %}
+    <section class="learning-profile-grid" aria-label="Learning profile overview">
+        <article class="profile-panel profile-strengths"><div class="profile-panel-heading"><span class="profile-icon"><i class="fas fa-check" aria-hidden="true"></i></span><div><span class="premium-eyebrow">Strengths</span><h2>What is working</h2></div></div>{% if profile.strengths %}<ul class="profile-list">{% for item in profile.strengths %}<li><i class="fas fa-check" aria-hidden="true"></i><span>{{ item.name }}</span><strong>{{ item.accuracy }}%</strong></li>{% endfor %}</ul>{% else %}<p class="profile-muted">Keep reviewing questions to reveal consistently strong topics.</p>{% endif %}</article>
+        <article class="profile-panel profile-weaknesses"><div class="profile-panel-heading"><span class="profile-icon"><i class="fas fa-arrow-trend-down" aria-hidden="true"></i></span><div><span class="premium-eyebrow">Weaknesses</span><h2>Where to focus</h2></div></div>{% if profile.weaknesses %}<ul class="profile-list">{% for item in profile.weaknesses %}<li><i class="fas fa-xmark" aria-hidden="true"></i><span>{{ item.name }}</span><strong>{{ item.accuracy }}%</strong></li>{% endfor %}</ul>{% else %}<p class="profile-muted">No topic is below 70% yet. Continue building consistency.</p>{% endif %}</article>
+    </section>
+
+    <section class="premium-dashboard-section learning-style-section" aria-labelledby="style-heading">
+        <div class="premium-section-heading"><div><span class="premium-eyebrow">Learning style signals</span><h2 id="style-heading">How you learn under pressure</h2><p>These observations are based on the confidence and miss reasons you recorded during review.</p></div></div>
+        <div class="learning-signal-list">{% for signal in profile.learning_signals %}<div class="learning-signal {{ signal.kind }}"><i class="fas {% if signal.kind == 'positive' %}fa-circle-check{% else %}fa-triangle-exclamation{% endif %}" aria-hidden="true"></i><span>{{ signal.text }}</span></div>{% endfor %}</div>
+    </section>
+
+    <section class="profile-recommendation" aria-labelledby="recommendation-heading"><div class="profile-icon"><i class="fas fa-lightbulb" aria-hidden="true"></i></div><div><span class="premium-eyebrow">Recommendation</span><h2 id="recommendation-heading">Your next best move</h2><p>{{ profile.recommendation }}</p></div></section>
+
+    <section class="premium-dashboard-section" aria-labelledby="course-profile-heading"><div class="premium-section-heading"><div><h2 id="course-profile-heading">Course snapshot</h2><p>Use the course review action to turn any priority area into a seven-day plan.</p></div></div><div class="profile-course-table">{% for item in profile.course_stats %}<div class="profile-course-row"><strong>{{ item.name }}</strong><span>{{ item.attempts }} question{{ '' if item.attempts == 1 else 's' }}</span><b class="{% if item.accuracy < 70 %}warning{% elif item.accuracy >= 80 %}positive{% endif %}">{{ item.accuracy }}%</b><a href="{{ url_for('course_review', course_code=item.name) }}" class="premium-text-link">Review <i class="fas fa-arrow-right" aria-hidden="true"></i></a></div>{% endfor %}</div></section>
+    {% endif %}
+</div>
+{% endblock %}

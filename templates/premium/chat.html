@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}AI Chat - PrepCampus Premium{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='premium.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="ai-page">
+    <div class="ai-page-heading">
+        <a href="{{ url_for('premium') }}" class="premium-back-link"><i class="fas fa-arrow-left" aria-hidden="true"></i> Premium workspace</a>
+        <h1>Ask your AI tutor.</h1>
+        <p>Get a clear explanation, a worked example, or a follow-up question to check your understanding.</p>
+    </div>
+
+    <section class="ai-card ai-chat-shell" aria-labelledby="chat-title">
+        <div>
+            <div class="premium-section-heading">
+                <div>
+                    <h2 id="chat-title">PrepCampus AI Coach</h2>
+                    <p class="chat-meta">Responses are tailored for learning, not just answer-giving.</p>
+                </div>
+                <span class="premium-badge"><i class="fas fa-circle" aria-hidden="true"></i> Ready</span>
+            </div>
+        </div>
+        <div id="messages" class="chat-messages" aria-live="polite" aria-label="Chat messages">
+            <div class="chat-message assistant">Hi. Tell me what you are studying, and I will help you break it down.</div>
+        </div>
+        <form id="chatForm" class="chat-composer">
+            <label class="is-hidden" for="message">Message</label>
+            <textarea id="message" rows="1" maxlength="4000" placeholder="Ask about a topic, question, or concept..." required></textarea>
+            <button id="sendButton" class="premium-button" type="submit"><i class="fas fa-paper-plane" aria-hidden="true"></i> Send</button>
+        </form>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(() => {
+    const form = document.getElementById('chatForm');
+    const input = document.getElementById('message');
+    const messages = document.getElementById('messages');
+    const sendButton = document.getElementById('sendButton');
+
+    const addMessage = (text, role) => {
+        const message = document.createElement('div');
+        message.className = `chat-message ${role}`;
+        message.textContent = text;
+        messages.appendChild(message);
+        messages.scrollTop = messages.scrollHeight;
+        return message;
+    };
+
+    const setBusy = (busy) => {
+        input.disabled = busy;
+        sendButton.disabled = busy;
+        sendButton.innerHTML = busy
+            ? '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Thinking…'
+            : '<i class="fas fa-paper-plane" aria-hidden="true"></i> Send';
+    };
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const question = input.value.trim();
+        if (!question || sendButton.disabled) return;
+
+        addMessage(question, 'user');
+        input.value = '';
+        setBusy(true);
+
+        try {
+            const response = await fetch('{{ url_for("send_ai_chat") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ message: question })
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || data.error) {
+                throw new Error(data.error || 'The AI tutor could not respond right now.');
+            }
+            addMessage(data.reply || data.answer || 'I could not generate a response. Please try again.', 'assistant');
+        } catch (error) {
+            const message = !navigator.onLine || error.name === 'TypeError'
+                ? "We couldn't reach your AI tutor. Please check your internet connection and try again."
+                : (error.message || "We couldn't prepare a response right now. Please try again in a moment.");
+            addMessage(message, 'error');
+        } finally {            setBusy(false);
+            input.focus();
+        }
+    });
+
+    input.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            form.requestSubmit();
+        }
+    });
+})();
+</script>
+{% endblock %}

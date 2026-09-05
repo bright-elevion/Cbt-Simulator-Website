@@ -74,7 +74,14 @@
             <span class="course-label">Communication in English</span>
             <div class="lock-overlay"><i class="fas fa-lock"></i></div>
         </a>
-
+        
+        <a href="{{ url_for('ai_questions') }}" class="course-card ai-course-card" style="grid-column: 1 / -1; background: linear-gradient(135deg, #eef6ff, #ffffff); border: 1px solid #cfe3ff;">
+            <div class="course-icon" style="background: var(--primary);">
+                <i class="fas fa-wand-magic-sparkles"></i>
+            </div>
+            <span class="course-name">AI Question Generator</span>
+            <span class="course-label">Enter any course or topic. We reuse unseen database questions first, then generate only what is missing.</span>
+        </a>
     </div>
 </div>
 

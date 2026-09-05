@@ -1,0 +1,496 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* ==============================
+       ADMIN LAYOUT
+    ==============================*/
+
+    .admin-layout {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        min-height: 100vh;
+        background: #f8fafc;
+    }
+
+    /* ==============================
+       SIDEBAR
+    ==============================*/
+
+    .sidebar {
+        background: #0f172a;
+        color: #fff;
+        padding: 30px 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        z-index: 1000;
+        transition: left 0.35s ease;
+    }
+
+    .sidebar-logo {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .sidebar-logo h2 {
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: 1px;
+    }
+
+    .sidebar-menu {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sidebar-menu a {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px 28px;
+        color: #cbd5e1;
+        text-decoration: none;
+        transition: .3s;
+        font-weight: 500;
+    }
+
+    .sidebar-menu a:hover {
+        background: #1e293b;
+        color: #fff;
+    }
+
+    .sidebar-menu a.active {
+        background: #2563eb;
+        color: #fff;
+        border-left: 5px solid #60a5fa;
+    }
+
+    .sidebar-footer {
+        padding: 20px 28px;
+        border-top: 1px solid rgba(255, 255, 255, .08);
+    }
+
+    .sidebar-footer a {
+        color: #cbd5e1;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* ==============================
+       MAIN CONTENT
+    ==============================*/
+
+    .main-content {
+        display: flex;
+        flex-direction: column;
+        min-width: 0; /* Prevent overflow issues */
+    }
+
+    /* ==============================
+       TOPBAR
+    ==============================*/
+
+    .topbar {
+        height: 80px;
+        background: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 35px;
+        border-bottom: 1px solid #e2e8f0;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+
+    .topbar-left h1 {
+        font-size: 28px;
+        color: #0f172a;
+        margin: 0;
+    }
+
+    .topbar-left p {
+        color: #64748b;
+        margin-top: 5px;
+        margin-bottom: 0;
+    }
+
+    .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .topbar-btn {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: #f1f5f9;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        transition: .3s;
+    }
+
+    .topbar-btn:hover {
+        background: #2563eb;
+        color: #fff;
+    }
+
+    .menu-toggle {
+        display: none; /* Hidden on desktop */
+        width: 45px;
+        height: 45px;
+        border: none;
+        background: #f1f5f9;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 18px;
+        transition: .3s;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .menu-toggle:hover {
+        background: #2563eb;
+        color: #fff;
+    }
+
+    /* ==============================
+       PAGE CONTENT
+    ==============================*/
+
+    .dashboard-content {
+        padding: 35px;
+    }
+
+    /* ==============================
+       STATS
+    ==============================*/
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 25px;
+        margin-bottom: 35px;
+    }
+
+    .stat-card {
+        background: #fff;
+        border-radius: 18px;
+        padding: 25px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, .06);
+        transition: .3s;
+        border: 1px solid #edf2f7;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, .08);
+    }
+
+    .stat-title {
+        font-size: 15px;
+        color: #64748b;
+    }
+
+    .stat-value {
+        margin-top: 10px;
+        font-size: 34px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .stat-change {
+        margin-top: 8px;
+        color: #16a34a;
+        font-size: 14px;
+    }
+
+    /* ==============================
+       LOWER GRID
+    ==============================*/
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 30px;
+    }
+
+    .card {
+        background: #fff;
+        border-radius: 18px;
+        padding: 25px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, .05);
+        border: 1px solid #edf2f7;
+    }
+
+    .card h3 {
+        margin-bottom: 20px;
+        color: #0f172a;
+    }
+
+    .quick-actions {
+        display: grid;
+        gap: 15px;
+    }
+
+    .action-btn {
+        background: #2563eb;
+        color: white;
+        padding: 14px;
+        text-align: center;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: .3s;
+    }
+
+    .action-btn:hover {
+        background: #1d4ed8;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table th {
+        text-align: left;
+        padding: 14px;
+        background: #f8fafc;
+        color: #475569;
+    }
+
+    .table td {
+        padding: 14px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    /* ==============================
+       OVERLAY
+    ==============================*/
+
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, .45);
+        opacity: 0;
+        visibility: hidden;
+        transition: .3s;
+        z-index: 998;
+    }
+
+    .sidebar-overlay.show {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    /* ==============================
+       MOBILE RESPONSIVENESS
+    ==============================*/
+
+    @media (max-width: 1100px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 900px) {
+        .admin-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .menu-toggle {
+            display: flex;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: -260px;
+            width: 260px;
+        }
+
+        .sidebar.show {
+            left: 0;
+        }
+
+        .topbar {
+            padding: 0 20px;
+        }
+
+        .dashboard-content {
+            padding: 20px;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="admin-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div>
+            <div class="sidebar-logo">
+                <h2>CBT Admin</h2>
+            </div>
+
+            <nav class="sidebar-menu">
+                <a href="{{ url_for('admin_dashboard') }}" class="active">
+                    <i class="fa-solid fa-gauge"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{{ url_for('admin_users') }}">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Users</span>
+                </a>
+                <a href="{{ url_for('admin_questions') }}">
+                    <i class="fa-solid fa-book"></i>
+                    <span>Questions</span>
+                </a>
+                <a href="{{ url_for('admin_payments') }}">
+                    <i class="fa-solid fa-credit-card"></i>
+                    <span>Payments</span>
+                </a>
+                <a href="{{ url_for('admin_analytics') }}">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="{{ url_for('admin_feedback') }}">
+                    <i class="fa-solid fa-comments"></i>
+                    <span>Feedback</span>
+                </a>
+                <a href="{{ url_for('admin_notifications') }}">
+                    <i class="fa-solid fa-bell"></i>
+                    <span>Notifications</span>
+                </a>
+                <a href="{{ url_for('admin_admins') }}">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span>Admins</span>
+                </a>
+                <a href="#">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+        </div>
+
+        <div class="sidebar-footer">
+            <a href="{{ url_for('logout') }}">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- OVERLAY -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <header class="topbar">
+            <button id="menuToggle" class="menu-toggle">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <div class="topbar-left">
+                <h1>Dashboard</h1>
+                <p>Welcome back, <strong>{{ session.get('username') }}</strong></p>
+            </div>
+
+            <div class="topbar-right">
+                <div class="topbar-btn">
+                    <i class="fa-solid fa-bell"></i>
+                </div>
+                <div class="topbar-btn">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+            </div>
+        </header>
+
+        <section class="dashboard-content">
+            <!-- STATS -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-title">Total Users</div>
+                    <div class="stat-value">{{ stats.total_users }}</div>
+                    <div class="stat-change">Registered Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Questions</div>
+                    <div class="stat-value">{{ stats.total_questions }}</div>
+                    <div class="stat-change">Question Bank</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Quiz Attempts</div>
+                    <div class="stat-value">{{ stats.total_attempts }}</div>
+                    <div class="stat-change">Completed Tests</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Revenue</div>
+                    <div class="stat-value">₦{{ "{:,.0f}".format(stats.total_revenue) }}</div>
+                    <div class="stat-change">Payments Received</div>
+                </div>
+            </div>
+
+            <!-- LOWER GRID -->
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>Recent Activity</h3>
+                    <p>No activity yet...</p>
+                </div>
+
+                <div class="card">
+                    <h3>Quick Actions</h3>
+                    <div class="quick-actions">
+                        <a href="{{ url_for('add_question') }}" class="action-btn">Add Question</a>
+                        <a href="{{ url_for('admin_users') }}" class="action-btn">Manage Users</a>
+                        <a href="{{ url_for('admin_payments') }}" class="action-btn">Payments</a>
+                        <a href="{{ url_for('admin_feedback') }}" class="action-btn">Feedback</a>
+                        <a href="{{ url_for('admin_notifications') }}" class="action-btn">Send notification</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+    const sidebar = document.querySelector(".sidebar");
+    const menuToggle = document.getElementById("menuToggle");
+    const overlay = document.getElementById("sidebarOverlay");
+
+    // Toggle Sidebar
+    menuToggle.addEventListener("click", () => {
+        sidebar.classList.toggle("show");
+        overlay.classList.toggle("show");
+    });
+
+    // Close when clicking overlay
+    overlay.addEventListener("click", () => {
+        sidebar.classList.remove("show");
+        overlay.classList.remove("show");
+    });
+
+    // Handle screen resize
+    window.addEventListener("resize", () => {
+        if (window.innerWidth > 900) {
+            sidebar.classList.remove("show");
+            overlay.classList.remove("show");
+        }
+    });
+</script>
+{% endblock %}

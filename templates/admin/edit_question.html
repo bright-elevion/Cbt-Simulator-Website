@@ -1,0 +1,357 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="admin-container">
+
+    <a href="{{ url_for('admin_questions') }}" class="back-link">
+        ← Back to Question Bank
+    </a>
+
+    <div class="form-container">
+
+        <h1>Edit Question</h1>
+
+        <p class="subtitle">
+            Update an existing CBT question.
+        </p>
+
+        <form method="POST" class="question-form">
+
+            <!-- Question Details -->
+            <div class="section">
+
+                <div class="section-title">
+                    Question Details
+                </div>
+
+                <div class="form-group">
+                    <label for="course_code">Course Code</label>
+                    <input
+                        type="text"
+                        id="course_code"
+                        name="course_code"
+                        value="{{ question.course_code }}"
+                        placeholder="e.g. CSC101"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label for="topic">Topic</label>
+                    <input
+                        type="text"
+                        id="topic"
+                        name="topic"
+                        value="{{ question.topic }}"
+                        placeholder="e.g. Python Functions"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label for="question_text">Question</label>
+                    <textarea
+                        id="question_text"
+                        name="question_text"
+                        rows="5"
+                        placeholder="Enter the question..."
+                        required>{{ question.question_text }}</textarea>
+                </div>
+
+            </div>
+
+            <!-- Options -->
+            <div class="section">
+
+                <div class="section-title">
+                    Answer Options
+                </div>
+
+                <div class="options-grid">
+
+                    <div class="form-group">
+                        <label>Option A</label>
+                        <input
+                            type="text"
+                            name="option_a"
+                            value="{{ question.option_a }}"
+                            placeholder="Option A"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Option B</label>
+                        <input
+                            type="text"
+                            name="option_b"
+                            value="{{ question.option_b }}"
+                            placeholder="Option B"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Option C</label>
+                        <input
+                            type="text"
+                            name="option_c"
+                            value="{{ question.option_c }}"
+                            placeholder="Option C"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Option D</label>
+                        <input
+                            type="text"
+                            name="option_d"
+                            value="{{ question.option_d }}"
+                            placeholder="Option D"
+                            required>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Correct Answer -->
+            <div class="section">
+
+                <div class="section-title">
+                    Answer & Explanation
+                </div>
+
+                <div class="form-group">
+                    <label>Correct Answer</label>
+
+                    <select
+                        id="correct_option"
+                        name="correct_option"
+                        required>
+
+                        <option value="A" {% if question.correct_option=='A' %}selected{% endif %}>A</option>
+
+                        <option value="B" {% if question.correct_option=='B' %}selected{% endif %}>B</option>
+
+                        <option value="C" {% if question.correct_option=='C' %}selected{% endif %}>C</option>
+
+                        <option value="D" {% if question.correct_option=='D' %}selected{% endif %}>D</option>
+
+                    </select>
+
+                </div>
+
+                <div class="form-group">
+                    <label>Explanation</label>
+
+                    <textarea
+                        id="solution"
+                        name="solution"
+                        rows="6"
+                        placeholder="Explain why this answer is correct...">{{ question.solution or '' }}</textarea>
+
+                </div>
+
+            </div>
+
+            <div class="form-actions">
+
+                <a href="{{ url_for('admin_questions') }}"
+                   class="btn btn-secondary">
+
+                    Cancel
+
+                </a>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                    id="saveBtn">
+
+                    Save Changes
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<style>
+    body{
+    background:#f5f7fb;
+    font-family:Inter,system-ui,sans-serif;
+}
+
+.admin-container{
+    max-width:950px;
+    margin:40px auto;
+    padding:20px;
+}
+
+.form-container{
+    background:#fff;
+    border-radius:22px;
+    padding:40px;
+    box-shadow:0 20px 50px rgba(15,23,42,.08);
+}
+
+.back-link{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    text-decoration:none;
+    color:#2563eb;
+    font-weight:600;
+    margin-bottom:20px;
+}
+
+.form-container h1{
+    margin:0;
+    font-size:2rem;
+    color:#111827;
+}
+
+.subtitle{
+    color:#64748b;
+    margin:8px 0 35px;
+}
+
+.section{
+    margin-bottom:35px;
+    padding-bottom:30px;
+    border-bottom:1px solid #eef2f7;
+}
+
+.section:last-child{
+    border-bottom:none;
+}
+
+.section-title{
+    font-size:1rem;
+    font-weight:700;
+    color:#111827;
+    margin-bottom:20px;
+}
+
+.form-group{
+    margin-bottom:20px;
+}
+
+.form-group label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:600;
+    color:#374151;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select{
+
+    width:100%;
+    padding:14px 16px;
+    border:1px solid #dbe3ee;
+    border-radius:14px;
+    font-size:15px;
+    transition:.25s;
+    background:#fff;
+
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus{
+
+    outline:none;
+    border-color:#2563eb;
+    box-shadow:0 0 0 4px rgba(37,99,235,.12);
+
+}
+
+.options-grid{
+
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:20px;
+
+}
+
+.form-actions{
+
+    display:flex;
+    justify-content:flex-end;
+    gap:15px;
+    margin-top:40px;
+
+}
+
+.btn{
+
+    padding:14px 26px;
+    border:none;
+    border-radius:14px;
+    cursor:pointer;
+    font-weight:600;
+    transition:.25s;
+    text-decoration:none;
+
+}
+
+.btn-primary{
+
+    background:#2563eb;
+    color:white;
+
+}
+
+.btn-primary:hover{
+
+    background:#1d4ed8;
+    transform:translateY(-2px);
+
+}
+
+.btn-secondary{
+
+    background:#fff;
+    border:1px solid #dbe3ee;
+    color:#374151;
+
+}
+
+.btn-secondary:hover{
+
+    background:#f8fafc;
+
+}
+
+@media(max-width:768px){
+
+.options-grid{
+
+grid-template-columns:1fr;
+
+}
+
+.form-actions{
+
+flex-direction:column-reverse;
+
+}
+
+.btn{
+
+width:100%;
+
+}
+
+.form-container{
+
+padding:25px;
+
+}
+
+}
+</style>
+{% endblock %}

@@ -64,17 +64,38 @@
 let questions = [];
 let currentQuestionIndex = 0;
 let userAnswers = {};
+let questionTimes = {};
+let questionStartedAt = null;
 let timeRemaining = {{ session.get('duration_seconds', 1800) }};
 const numQuestions = {{ session.get('num_questions', 10) }};
-const course = "{{ course }}";
-const topic = "{{ topic }}";
+const course = {{ course | tojson }};
+const topic = {{ topic | tojson }};
+const simulator = new URLSearchParams(window.location.search).get('simulator') || 'free';
+
+function returnToCourseSelection() {
+    const fallback = simulator.toLowerCase() === 'paid' ? '/paid-courses' : '/free-courses';
+    const referrer = document.referrer;
+
+    // Return to the same-site configuration page when available; otherwise
+    // use the simulator-specific course-selection fallback.
+    try {
+        if (referrer && new URL(referrer, window.location.origin).origin === window.location.origin) {
+            window.location.assign(referrer);
+            return;
+        }
+    } catch (error) {
+        console.warn('Unable to restore the previous course page:', error);
+    }
+
+    window.location.assign(fallback);
+}
 
 async function loadQuestions() {
     try {
         const response = await fetch(`/api/questions?course=${encodeURIComponent(course)}&topic=${encodeURIComponent(topic)}&limit=${numQuestions}`);
         if (!response.ok) {
-            alert('Failed to load questions for this course');
-            window.location.href = '/free-courses';
+            alert('We could not load questions for this course. Please try again.');
+            returnToCourseSelection();
             return;
         }
         questions = await response.json();
@@ -85,20 +106,26 @@ async function loadQuestions() {
         startTimer();
     } catch (error) {
         console.error('Error loading questions:', error);
-        alert('Failed to load questions. Please try again.');
-        window.location.href = '/free-courses';
+        alert('We could not load questions right now. Please check your connection and try again.');
+        returnToCourseSelection();
     }
 }
 
 function displayQuestion() {
     if (questions.length === 0) return;
     
+    questionStartedAt = performance.now();
     const q = questions[currentQuestionIndex];
-    document.getElementById('question-text').textContent = q.question_text;
-    document.getElementById('option-a').textContent = q.option_a;
-    document.getElementById('option-b').textContent = q.option_b;
-    document.getElementById('option-c').textContent = q.option_c;
-    document.getElementById('option-d').textContent = q.option_d;
+    PrepCampusQuestionRenderer.setQuestion(
+        document.getElementById('question-text'),
+        [
+            document.getElementById('option-a'),
+            document.getElementById('option-b'),
+            document.getElementById('option-c'),
+            document.getElementById('option-d')
+        ],
+        q
+    );
     document.getElementById('current-question').textContent = currentQuestionIndex + 1;
     
     const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
@@ -150,6 +177,11 @@ function generateQuestionNumbers() {
 function saveAnswer() {
     const selected = document.querySelector('input[name="answer"]:checked');
     if (selected) userAnswers[currentQuestionIndex] = selected.value;
+    if (questionStartedAt !== null) {
+        const elapsed = Math.max(0, (performance.now() - questionStartedAt) / 1000);
+        questionTimes[currentQuestionIndex] = (questionTimes[currentQuestionIndex] || 0) + elapsed;
+        questionStartedAt = null;
+    }
 }
 
 document.getElementById('next-btn').onclick = () => { 
@@ -189,7 +221,11 @@ function startTimer() {
 
 async function submitQuiz() {
     saveAnswer();
-    const answers = questions.map((q, i) => ({ question_id: q.id, answer: userAnswers[i] || null }));
+    const answers = questions.map((q, i) => ({
+        question_id: q.id,
+        answer: userAnswers[i] || null,
+        time_spent_seconds: Math.round((questionTimes[i] || 0) * 10) / 10
+    }));
     try {
         const res = await fetch('/submit', {
             method: 'POST',

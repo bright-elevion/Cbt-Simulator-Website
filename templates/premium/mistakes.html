@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Mistake Notebook · PrepCampus{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='premium.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="premium-dashboard-page mistake-notebook-page">
+    <header class="performance-heading dashboard-heading mistake-notebook-hero">
+        <div>
+            <a href="{{ url_for('premium_dashboard') }}" class="premium-back-link"><i class="fas fa-arrow-left" aria-hidden="true"></i> Premium dashboard</a>
+            <p class="performance-eyebrow">Personal error intelligence</p>
+            <h1>Mistake Notebook</h1>
+            <p>Turn every wrong answer into a durable learning asset. CampusMate explains the confusion, schedules the next review, and gives you a targeted retest.</p>
+        </div>
+        <div class="mistake-hero-actions">
+            <a href="{{ url_for('mistake_retest') }}" class="premium-button"><i class="fas fa-rotate" aria-hidden="true"></i> Retest mistakes</a>
+            <a href="{{ url_for('ai_questions') }}" class="premium-button secondary"><i class="fas fa-file-pen" aria-hidden="true"></i> Create practice set</a>
+        </div>
+    </header>
+
+    <section class="mistake-summary-grid" aria-label="Mistake notebook summary">
+        <article class="mistake-summary-card"><span class="mistake-summary-icon tone-red"><i class="fas fa-circle-exclamation" aria-hidden="true"></i></span><div><span>Unique mistakes</span><strong>{{ total_unique_mistakes }}</strong><small>Question-level history</small></div></article>
+        <article class="mistake-summary-card"><span class="mistake-summary-icon tone-green"><i class="fas fa-check-double" aria-hidden="true"></i></span><div><span>Reviewed</span><strong>{{ reviewed_count }}</strong><small>Marked as understood</small></div></article>
+        <article class="mistake-summary-card"><span class="mistake-summary-icon tone-amber"><i class="fas fa-clock" aria-hidden="true"></i></span><div><span>Due for review</span><strong>{{ due_reviews }}</strong><small>Spaced repetition queue</small></div></article>
+        <article class="mistake-summary-card"><span class="mistake-summary-icon tone-purple"><i class="fas fa-tags" aria-hidden="true"></i></span><div><span>Focus topics</span><strong>{{ critical_topics }}</strong><small>High-priority areas</small></div></article>
+    </section>
+
+    <section class="mistake-retest-callout premium-panel">
+        <div class="mistake-retest-callout-icon"><i class="fas fa-bullseye" aria-hidden="true"></i></div>
+        <div><p class="performance-eyebrow">Retrieval practice</p><h2>Ready to test whether the lesson stayed?</h2><p>Choose ten random mistakes, today’s misses, this week’s misses, or one course. The retest records whether you remembered the concept.</p></div>
+        <a href="{{ url_for('mistake_retest') }}" class="premium-button">Open retest <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+    </section>
+
+    {% if heatmap %}
+    <section class="mistake-insight-grid" aria-label="Mistake insights">
+        <article class="premium-panel mistake-heatmap-panel">
+            <div class="mistake-section-heading"><div><p class="performance-eyebrow">Weakness map</p><h2>Mistake heat map</h2></div><span class="mistake-insight-caption">Repeated misses by topic</span></div>
+            <div class="mistake-heatmap-list">
+                {% for course_group in heatmap %}
+                <div class="mistake-heatmap-course">
+                    <div class="mistake-heatmap-course-title"><strong>{{ course_group.course }}</strong><span>{{ course_group.total }} mistake{{ '' if course_group.total == 1 else 's' }}</span></div>
+                    {% for topic in course_group.topics %}
+                    <div class="mistake-heatmap-row"><div class="mistake-heatmap-label"><span>{{ topic.topic }}</span><strong>{{ topic.mistakes }}</strong></div><div class="mistake-heat-bar"><span style="width: {{ [100, (topic.mistakes / course_group.total * 100)|round(0, 'ceil')]|min }}%"></span></div></div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+        </article>
+        <article class="premium-panel mistake-spaced-panel">
+            <div class="mistake-section-heading"><div><p class="performance-eyebrow">Memory system</p><h2>Spaced review</h2></div><i class="fas fa-arrows-rotate" aria-hidden="true"></i></div>
+            <p class="mistake-spaced-lead">CampusMate brings a mistake back at the right time instead of asking you to reread everything.</p>
+            <div class="mistake-spaced-timeline">
+                <div><span>1 day</span><strong>Review the distinction</strong></div><div><span>3 days</span><strong>Confirm the rule</strong></div><div><span>7 days</span><strong>Retrieve without help</strong></div><div><span>30 days</span><strong>Retest yourself</strong></div>
+            </div>
+        </article>
+    </section>
+    {% endif %}
+
+    <section class="premium-panel mistake-filter-panel" aria-label="Mistake filters">
+        <div class="mistake-filter-heading"><div><p class="performance-eyebrow">Notebook controls</p><h2>Find the right mistake</h2></div><p>Use tags to move quickly from a broad course weakness to a precise revision pattern.</p></div>
+        <form class="mistake-filter-form mistake-filter-form-expanded" method="get" action="{{ url_for('mistake_notebook') }}" id="mistakeFilterForm">
+            <label><span>Course</span><select name="course" id="mistakeCourseFilter"><option value="">All courses</option>{% for course in courses %}<option value="{{ course }}"{% if filter_course|lower == course|lower %} selected{% endif %}>{{ course }}</option>{% endfor %}</select></label>
+            <label><span>Why you missed it</span><select name="miss_reason" id="mistakeReasonFilter"><option value="">All miss reasons</option>{% for reason in miss_reasons %}<option value="{{ reason }}"{% if filter_reason == reason %} selected{% endif %}>{{ reason|replace('_', ' ')|title }}</option>{% endfor %}</select></label>
+            <label><span>Tag</span><select name="tag" id="mistakeTagFilter"><option value="">All tags</option>{% for tag in all_tags %}<option value="{{ tag }}"{% if filter_tag|lower == tag|lower %} selected{% endif %}>#{{ tag }}</option>{% endfor %}</select></label>
+            <label><span>Sort by</span><select name="sort" id="mistakeSort"><option value="importance"{% if sort_by == 'importance' %} selected{% endif %}>Importance</option><option value="recent"{% if sort_by == 'recent' %} selected{% endif %}>Most recent</option><option value="misses"{% if sort_by == 'misses' %} selected{% endif %}>Most repeated</option></select></label>
+            <button type="submit" class="premium-button secondary"><i class="fas fa-sliders" aria-hidden="true"></i> Apply filters</button>
+        </form>
+    </section>
+
+    {% if mistakes %}
+    <section class="mistake-grid" id="mistakeGrid" aria-label="Your mistakes">
+        {% for mistake in mistakes %}
+        <article class="mistake-card{% if mistake.reviewed %} is-reviewed{% endif %}" data-mistake-id="{{ mistake.question_id }}" data-course="{{ mistake.course|lower }}" data-reasons="{{ mistake.miss_reasons|join('|')|lower }}" data-tags="{{ mistake.ai_note.tags|join('|')|lower }}" data-importance="{{ mistake.importance }}" data-misses="{{ mistake.misses }}" data-recent="{{ mistake.last_missed_iso }}">
+            <div class="mistake-card-header"><div><div class="mistake-card-badges"><span class="premium-badge">{{ mistake.course }}</span><span class="mistake-topic-badge">{{ mistake.topic }}</span></div><p class="mistake-card-label">Question {{ loop.index }} · last missed {{ mistake.last_missed_label }}</p></div><span class="importance-badge importance-{{ 'high' if mistake.importance >= 75 else 'medium' if mistake.importance >= 55 else 'low' }}"><i class="fas fa-bolt" aria-hidden="true"></i> {{ mistake.importance }} priority</span></div>
+
+            <div class="mistake-question-shell"><div class="mistake-question-text" data-question-text><span class="mistake-loading-text">Loading question…</span></div><div class="mistake-option-list" data-options>{% for letter in ['A','B','C','D'] %}<div class="mistake-option"><span class="mistake-option-letter">{{ letter }}</span><span data-option="{{ letter }}"></span></div>{% endfor %}</div></div>
+
+            <div class="mistake-answer-compare"><div class="mistake-answer mistake-answer-wrong"><span><i class="fas fa-xmark" aria-hidden="true"></i> Your answer</span><strong>{{ mistake.selected_option or '—' }}</strong><small>{{ mistake.selected_answer }}</small></div><div class="mistake-answer mistake-answer-correct"><span><i class="fas fa-check" aria-hidden="true"></i> Correct answer</span><strong>{{ mistake.correct_option or '—' }}</strong><small>{{ mistake.correct_answer }}</small></div></div>
+            <div class="mistake-card-metrics"><div><span>Missed</span><strong>{{ mistake.misses }} time{{ '' if mistake.misses == 1 else 's' }}</strong></div><div><span>Retention</span><strong>{{ mistake.retention }}%</strong></div><div><span>Review</span><strong>{{ mistake.review_schedule.next_review_label }}</strong></div></div>
+            <div class="mistake-retention-track" aria-label="Estimated retention {{ mistake.retention }} percent"><span style="width: {{ mistake.retention }}%"></span></div>
+
+            <div class="mistake-ai-note" data-note-panel>
+                <div class="mistake-ai-note-heading"><span class="mistake-ai-note-icon"><i class="fas fa-sparkles" aria-hidden="true"></i></span><div><p class="performance-eyebrow">CampusMate note</p><h3>Make this mistake useful</h3></div></div>
+                {% if mistake.ai_note.summary %}<p class="mistake-note-summary" data-note-summary>{{ mistake.ai_note.summary }}</p><div class="mistake-note-remember"><strong>Remember</strong><p data-note-remember>{{ mistake.ai_note.remember }}</p></div>{% else %}<p class="mistake-note-placeholder" data-note-placeholder>Generate a short explanation of what you confused and the rule that will prevent the same miss.</p>{% endif %}
+                <div class="mistake-tag-list" data-note-tags>{% for tag in mistake.ai_note.tags %}<span>#{{ tag }}</span>{% endfor %}</div>
+                <button type="button" class="premium-button secondary mistake-note-button" data-question-id="{{ mistake.question_id }}"><i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i> {{ 'View saved note' if mistake.ai_note.generated else 'Generate AI note' }}</button>
+            </div>
+
+            <div class="mistake-card-actions"><button type="button" class="premium-button secondary mistake-solution-toggle" aria-expanded="false"><i class="fas fa-lightbulb" aria-hidden="true"></i> Show full solution</button><a href="{{ url_for('ai_questions') }}?course={{ mistake.course|urlencode }}&topic={{ mistake.topic|urlencode }}" class="premium-button secondary"><i class="fas fa-dumbbell" aria-hidden="true"></i> Practise topic</a></div>
+            <div class="mistake-solution" hidden><div class="structured-solution" data-solution></div></div>
+
+            <div class="mistake-review-box"><div><strong>Next review</strong><span data-next-review>{{ mistake.review_schedule.next_review_label }}</span></div><div class="mistake-review-actions"><button type="button" class="mistake-review-button" data-rating="forgot" data-question-id="{{ mistake.question_id }}">Forgot</button><button type="button" class="mistake-review-button" data-rating="hard" data-question-id="{{ mistake.question_id }}">Still hard</button><button type="button" class="mistake-review-button primary" data-rating="got_it" data-question-id="{{ mistake.question_id }}">Got it</button></div></div>
+
+            <div class="mistake-card-footer"><span class="mistake-reviewed-status">{% if mistake.reviewed %}<i class="fas fa-check-circle" aria-hidden="true"></i> Reviewed{% else %}<i class="fas fa-circle" aria-hidden="true"></i> Not reviewed yet{% endif %}</span>{% if not mistake.reviewed %}<button type="button" class="text-link mistake-dismiss-button" data-question-id="{{ mistake.question_id }}">Mark as understood <i class="fas fa-arrow-right" aria-hidden="true"></i></button>{% else %}<span class="mistake-reviewed-copy">This question remains available for spaced review.</span>{% endif %}</div>
+        </article>
+        {% endfor %}
+    </section>
+    <div class="mistake-client-empty" id="mistakeClientEmpty" hidden><i class="fas fa-filter-circle-xmark" aria-hidden="true"></i><h2>No cards match these filters.</h2><p>Try another course, tag, miss reason, or sort order.</p><button type="button" class="premium-button secondary" id="clearMistakeFilters">Clear filters</button></div>
+    {% else %}
+    <section class="premium-panel performance-empty-state mistake-empty-state"><div class="performance-empty-icon"><i class="fas fa-book-open" aria-hidden="true"></i></div><h2>Your Mistake Notebook is ready for its first entry.</h2><p>Once you miss a premium question, CampusMate can explain the confusion, schedule a review, and build a retest from the exact question.</p><div class="performance-empty-actions"><a href="{{ url_for('ai_questions') }}" class="premium-button">Start premium practice</a><a href="{{ url_for('ai_coach') }}" class="premium-button secondary">Ask CampusMate</a></div></section>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+    const cards = Array.from(document.querySelectorAll('.mistake-card'));
+    const mistakeData = {{ mistakes|tojson }};
+    const courseFilter = document.getElementById('mistakeCourseFilter');
+    const reasonFilter = document.getElementById('mistakeReasonFilter');
+    const tagFilter = document.getElementById('mistakeTagFilter');
+    const sortSelect = document.getElementById('mistakeSort');
+    const grid = document.getElementById('mistakeGrid');
+    const clientEmpty = document.getElementById('mistakeClientEmpty');
+
+    function sourceFor(item) {
+        const structured = item.content_json && typeof item.content_json === 'object' ? item.content_json : {};
+        const rawOptions = structured.options;
+        const options = Array.isArray(rawOptions) ? rawOptions : (rawOptions && typeof rawOptions === 'object' ? ['A','B','C','D'].map(letter => rawOptions[letter] || rawOptions[letter.toLowerCase()] || '') : []);
+        const structuredSolution = structured.solution && typeof structured.solution === 'object' ? structured.solution : {answer: structured.answer || '', steps: Array.isArray(structured.steps) ? structured.steps : [], equations: Array.isArray(structured.equations) ? structured.equations : [], explanation: structured.explanation || ''};
+        return {question: structured.question || structured.question_text || item.question_text || 'Previously missed question', option_a: options[0] || (item.options && item.options.A) || '', option_b: options[1] || (item.options && item.options.B) || '', option_c: options[2] || (item.options && item.options.C) || '', option_d: options[3] || (item.options && item.options.D) || '', solution: structuredSolution.explanation || item.solution || '', solution_content: structuredSolution};
+    }
+
+    function setNoteState(card, note) {
+        const summary = card.querySelector('[data-note-summary]') || document.createElement('p');
+        summary.className = 'mistake-note-summary'; summary.dataset.noteSummary = 'true'; summary.textContent = note.summary || '';
+        const placeholder = card.querySelector('[data-note-placeholder]'); if (placeholder) placeholder.replaceWith(summary); else { const panel = card.querySelector('[data-note-panel]'); const old = panel.querySelector('[data-note-summary]'); if (old && old !== summary) old.replaceWith(summary); }
+        let remember = card.querySelector('[data-note-remember]');
+        if (!remember) { const wrap = document.createElement('div'); wrap.className = 'mistake-note-remember'; wrap.innerHTML = '<strong>Remember</strong><p data-note-remember></p>'; card.querySelector('[data-note-panel]').insertBefore(wrap, card.querySelector('[data-note-tags]')); remember = wrap.querySelector('[data-note-remember]'); }
+        remember.textContent = note.remember || '';
+        const tags = card.querySelector('[data-note-tags]'); tags.innerHTML = (note.tags || []).map(tag => '<span>#' + String(tag).replace(/[<>]/g, '') + '</span>').join('');
+    }
+
+    cards.forEach(card => {
+        const id = Number(card.dataset.mistakeId); const item = mistakeData.find(entry => Number(entry.question_id) === id); if (!item) return;
+        if (window.PrepCampusQuestionRenderer) {
+            const optionElements = ['A','B','C','D'].map(letter => card.querySelector('[data-option="' + letter + '"]'));
+            PrepCampusQuestionRenderer.setQuestion(card.querySelector('[data-question-text]'), optionElements, sourceFor(item));
+            optionElements.forEach((element, index) => { const option = element && element.closest('.mistake-option'); const letter = ['A','B','C','D'][index]; if (option && letter === item.selected_option) option.classList.add('is-selected'); if (option && letter === item.correct_option) option.classList.add('is-correct'); });
+        }
+        const solutionButton = card.querySelector('.mistake-solution-toggle'); const solution = card.querySelector('.mistake-solution');
+        if (solutionButton && solution) solutionButton.addEventListener('click', function () { const open = solutionButton.getAttribute('aria-expanded') === 'true'; solutionButton.setAttribute('aria-expanded', String(!open)); solution.hidden = open; solutionButton.innerHTML = open ? '<i class="fas fa-lightbulb" aria-hidden="true"></i> Show full solution' : '<i class="fas fa-chevron-up" aria-hidden="true"></i> Hide full solution'; if (!open && window.PrepCampusQuestionRenderer) PrepCampusQuestionRenderer.renderSolution(solution.querySelector('[data-solution]'), sourceFor(item)); });
+        const noteButton = card.querySelector('.mistake-note-button');
+        if (noteButton) noteButton.addEventListener('click', async function () { noteButton.disabled = true; noteButton.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Preparing note'; try { const response = await fetch('/premium/mistakes/' + id + '/note', {method: 'POST', headers: {'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json'}}); const payload = await response.json(); if (!response.ok || !payload.ok) throw new Error(payload.message || 'Unable to generate note'); setNoteState(card, payload.note); noteButton.textContent = 'Note saved'; } catch (error) { noteButton.disabled = false; noteButton.innerHTML = '<i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i> Try again'; window.alert('CampusMate could not prepare this note right now. Please try again shortly.'); } });
+    });
+
+    document.querySelectorAll('.mistake-review-button').forEach(button => button.addEventListener('click', async function () { const id = button.dataset.questionId; const group = button.closest('.mistake-review-box'); group.querySelectorAll('button').forEach(item => item.disabled = true); try { const response = await fetch('/premium/mistakes/' + id + '/review', {method: 'POST', headers: {'Content-Type': 'application/json', 'Accept': 'application/json'}, body: JSON.stringify({rating: button.dataset.rating})}); const payload = await response.json(); if (!response.ok || !payload.ok) throw new Error(payload.message || 'Unable to save review'); const next = group.querySelector('[data-next-review]'); if (next) next.textContent = payload.interval_days === 1 ? 'Tomorrow' : 'In ' + payload.interval_days + ' days'; group.classList.add('is-saved'); } catch (error) { group.querySelectorAll('button').forEach(item => item.disabled = false); window.alert('We could not save your review right now. Please try again.'); } }));
+
+    document.querySelectorAll('.mistake-dismiss-button').forEach(button => button.addEventListener('click', async function () { const card = button.closest('.mistake-card'); button.disabled = true; try { const response = await fetch('/premium/mistakes/' + button.dataset.questionId + '/dismiss', {method: 'POST', headers: {'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json'}}); const payload = await response.json(); if (!response.ok || !payload.ok) throw new Error('review update failed'); card.classList.add('is-reviewed'); const status = card.querySelector('.mistake-reviewed-status'); if (status) status.innerHTML = '<i class="fas fa-check-circle" aria-hidden="true"></i> Reviewed'; button.remove(); } catch (error) { button.disabled = false; button.textContent = 'Try again'; } }));
+
+    function renderCards() { if (!grid) return; const course = (courseFilter && courseFilter.value || '').toLowerCase(); const reason = (reasonFilter && reasonFilter.value || '').toLowerCase(); const tag = (tagFilter && tagFilter.value || '').toLowerCase(); const sort = sortSelect && sortSelect.value || 'importance'; const visible = cards.filter(card => { const reasons = (card.dataset.reasons || '').split('|'); const tags = (card.dataset.tags || '').split('|'); const show = (!course || card.dataset.course === course) && (!reason || reasons.includes(reason)) && (!tag || tags.includes(tag)); card.hidden = !show; return show; }); visible.sort((a,b) => sort === 'recent' ? (b.dataset.recent || '').localeCompare(a.dataset.recent || '') : sort === 'misses' ? Number(b.dataset.misses) - Number(a.dataset.misses) : Number(b.dataset.importance) - Number(a.dataset.importance)); visible.forEach(card => grid.appendChild(card)); if (clientEmpty) clientEmpty.hidden = visible.length !== 0; }
+    [courseFilter, reasonFilter, tagFilter, sortSelect].forEach(control => { if (control) control.addEventListener('change', renderCards); });
+    const clear = document.getElementById('clearMistakeFilters'); if (clear) clear.addEventListener('click', function () { [courseFilter, reasonFilter, tagFilter].forEach(control => { if (control) control.value = ''; }); renderCards(); });
+    renderCards(); if (window.PrepCampusQuestionRenderer) PrepCampusQuestionRenderer.typeset(document.getElementById('mistakeGrid'));
+})();
+</script>
+{% endblock %}

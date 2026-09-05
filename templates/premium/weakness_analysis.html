@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Weakness Analysis - PrepCampus Premium{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='premium.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="premium-dashboard-page weakness-analysis-page">
+    <div class="premium-page-heading">
+        <div>
+            <a href="{{ url_for('premium_dashboard') }}" class="premium-back-link"><i class="fas fa-arrow-left" aria-hidden="true"></i> Premium dashboard</a>
+            <h1>Find the gaps. Plan the next move.</h1>
+            <p>Review your course performance, understand why answers were missed, and turn the insight into a focused study plan.</p>
+        </div>
+        <a href="{{ url_for('learning_profile') }}" class="premium-button secondary"><i class="fas fa-user-graduate" aria-hidden="true"></i> Learning profile</a>
+    </div>
+
+    {% if load_error %}
+    <section class="ai-error weakness-alert" role="alert"><strong>We couldn't load your performance analysis.</strong><span>Please check your connection and try again. Your completed tests are safe.</span><a href="{{ url_for('weakness_analysis') }}" class="premium-button secondary">Try again</a></section>
+    {% else %}
+    <section class="premium-stat-grid" aria-label="Weakness analysis summary">
+        <article class="premium-stat"><div class="premium-stat-label">Overall average</div><div class="premium-stat-value accent">{{ "%.1f"|format(overall_average) }}%</div><div class="premium-stat-note">Across your completed tests</div></article>
+        <article class="premium-stat"><div class="premium-stat-label">Courses reviewed</div><div class="premium-stat-value">{{ analysis|length }}</div><div class="premium-stat-note">With available score history</div></article>
+        <article class="premium-stat"><div class="premium-stat-label">Priority areas</div><div class="premium-stat-value{% if priority_count > 0 %} warning{% endif %}">{{ priority_count }}</div><div class="premium-stat-note">Courses below 70% average</div></article>
+    </section>
+
+    <section class="learning-profile-strip" aria-label="Learning profile summary">
+        <div><span class="premium-eyebrow">Learning profile</span><h2>Make your next session more intentional.</h2><p>{% if profile.recommendation %}{{ profile.recommendation }}{% else %}Complete more reviewed questions to reveal your strongest learning signals.{% endif %}</p></div>
+        <div class="learning-strip-stats"><span><strong>{{ profile.strengths|length }}</strong> strengths</span><span><strong>{{ profile.weaknesses|length }}</strong> focus areas</span><span><strong>{{ profile.guessing_rate }}%</strong> guessing rate</span></div>
+        <a href="{{ url_for('learning_profile') }}" class="premium-text-link">View full profile <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+    </section>
+
+    {% if analysis %}
+    <section class="premium-dashboard-section" aria-labelledby="weakness-list-heading">
+        <div class="premium-section-heading"><div><h2 id="weakness-list-heading">Your focus areas</h2><p>Review your answered questions before starting another practice set. Your responses power the plan.</p></div><a href="{{ url_for('paid_courses') }}" class="premium-button"><i class="fas fa-layer-group" aria-hidden="true"></i> Create practice set</a></div>
+        <div class="weakness-list">
+            {% for row in analysis %}
+            {% set score = row.avg_score|float %}
+            {% if score < 60 %}{% set level = 'Needs attention' %}{% set level_class = 'critical' %}{% elif score < 70 %}{% set level = 'Priority review' %}{% set level_class = 'priority' %}{% elif score < 80 %}{% set level = 'Keep practising' %}{% set level_class = 'steady' %}{% else %}{% set level = 'Strong foundation' %}{% set level_class = 'strong' %}{% endif %}
+            <article class="weakness-card">
+                <div class="weakness-card-main"><div class="weakness-card-heading"><div><span class="premium-eyebrow">Course performance</span><h3>{{ row.course_code }}</h3></div><span class="weakness-level {{ level_class }}">{{ level }}</span></div><div class="weakness-meter" aria-label="{{ '%.1f'|format(score) }} percent average"><span style="width: {{ [score, 100]|min }}%;"></span></div><div class="weakness-card-meta"><span>{{ row.total_attempts }} test{{ '' if row.total_attempts == 1 else 's' }} completed</span><span>Range: {{ "%.1f"|format(row.lowest_score|float) }}%–{{ "%.1f"|format(row.highest_score|float) }}%</span><strong>{{ "%.1f"|format(score) }}% average</strong></div></div>
+                <div class="weakness-card-action"><a href="{{ url_for('course_review', course_code=row.course_code) }}" class="premium-button secondary"><i class="fas fa-magnifying-glass" aria-hidden="true"></i> Review course questions</a><a href="{{ url_for('configure_test', course=row.course_code, simulator='paid') }}" class="premium-button">Practise this course <i class="fas fa-arrow-right" aria-hidden="true"></i></a></div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+
+    {% if selected_plan and selected_course %}
+    <section class="premium-dashboard-section inline-plan-section" aria-labelledby="inline-plan-heading"><div class="premium-section-heading"><div><span class="premium-eyebrow">{{ selected_course }} review insights</span><h2 id="inline-plan-heading">Your personalised next steps</h2></div><a href="{{ url_for('course_study_plan', course_code=selected_course) }}" class="premium-button">Open full plan</a></div><div class="inline-plan-grid">{% for day in selected_plan.days[:3] %}<article><span>{{ day.day }}</span><strong>{{ day.title }}</strong><p>{{ day.task }}</p></article>{% endfor %}</div>{% if forgetting_curve %}<div class="mini-curve">{% for point in forgetting_curve %}<span><b style="height: {{ point.retention }}%"></b><strong>{{ point.retention }}%</strong><small>{{ point.day }}</small></span>{% endfor %}</div>{% endif %}</section>
+    {% endif %}
+    {% else %}
+    <section class="ai-card weakness-empty-state"><div class="summary-icon"><i class="fas fa-chart-line" aria-hidden="true"></i></div><div><h2 id="weakness-empty-heading">Your first insight starts with a completed test.</h2><p>Complete a CBT or study session while signed in. Once PrepCampus records a score, this page will show your course averages and recommended focus areas.</p><a href="{{ url_for('free_courses') }}" class="premium-button"><i class="fas fa-play" aria-hidden="true"></i> Start a practice session</a></div></section>
+    {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Premium Dashboard - PrepCampus{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='premium.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="premium-dashboard-page performance-insights-page">
+    <header class="performance-heading dashboard-heading">
+        <div>
+            <a href="{{ url_for('premium') }}" class="premium-back-link"><i class="fas fa-arrow-left" aria-hidden="true"></i> Premium workspace</a>
+            <p class="performance-eyebrow">Your premium command centre</p>
+            <h1>Welcome back, {{ display_name|default('learner') }}.</h1>
+            <p>CampusMate has turned your recent practice into one clear next step. Use the dashboard to study with evidence, not guesswork.</p>
+        </div>
+        <div class="performance-heading-actions">
+            <span class="premium-status"><i class="fas fa-shield-check" aria-hidden="true"></i> Premium active</span>
+            <a href="{{ url_for('ai_coach') }}" class="premium-button"><i class="fas fa-sparkles" aria-hidden="true"></i> Open CampusMate</a>
+        </div>
+    </header>
+
+    {% if notifications %}
+    <section class="dashboard-notification-row" aria-label="CampusMate check-ins">
+        {% for notification in notifications[:2] %}
+        <a class="campusmate-notification dashboard-notification" href="{{ notification.action_url or url_for('ai_coach') }}">
+            <span class="campusmate-notification-icon"><i class="fas {{ notification.icon|default('fa-check') }}" aria-hidden="true"></i></span>
+            <span><strong>{{ notification.title }}</strong><small>{{ notification.message }}</small></span>
+            <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i>
+        </a>
+        {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if insights.has_data %}
+    <section class="premium-panel academic-health-hero dashboard-health-hero" aria-labelledby="health-heading">
+        <div class="health-score-block">
+            <p class="performance-eyebrow">Academic Health</p>
+            <div class="health-score"><strong>{{ insights.academic_health }}</strong><span>/100</span></div>
+            <h2 id="health-heading">Your learning system is becoming clearer.</h2>
+            <p>Health combines knowledge, retention, speed, consistency, and confidence from your recorded premium activity.</p>
+        </div>
+        <div class="health-components">
+            {% for component in insights.health_components %}
+            <div>
+                <div class="health-component-heading"><span>{{ component.name }}</span><strong>{{ component.value }}%</strong></div>
+                <div class="metric-track"><span class="metric-fill tone-{{ component.tone }}" style="width: {{ component.value }}%"></span></div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="performance-kpi-grid dashboard-kpi-grid" aria-label="Your key study metrics">
+        <article class="performance-kpi"><span class="kpi-icon tone-blue"><i class="fas fa-fire" aria-hidden="true"></i></span><div><span class="kpi-label">Current streak</span><strong>{{ streaks.current|default(0) }} day{{ '' if streaks.current|default(0) == 1 else 's' }}</strong><small>Longest: {{ streaks.longest|default(0) }} days</small></div></article>
+        <article class="performance-kpi"><span class="kpi-icon tone-purple"><i class="fas fa-bullseye" aria-hidden="true"></i></span><div><span class="kpi-label">Questions this week</span><strong>{{ productivity.week.questions|default(0) }}</strong><small>{{ productivity.week.correct|default(0) }} correct answers</small></div></article>
+        <article class="performance-kpi"><span class="kpi-icon tone-green"><i class="fas fa-graduation-cap" aria-hidden="true"></i></span><div><span class="kpi-label">Exam readiness</span><strong>{{ insights.readiness[0].score if insights.readiness else '—' }}{% if insights.readiness %}%{% endif %}</strong><small>{{ insights.readiness[0].course if insights.readiness else 'Complete a course set' }}</small></div></article>
+        <article class="performance-kpi"><span class="kpi-icon tone-amber"><i class="fas fa-clock" aria-hidden="true"></i></span><div><span class="kpi-label">Study time this week</span><strong>{{ productivity.week.study_hours|default(0) }}h</strong><small>{{ productivity.week.sessions|default(0) }} study session{{ '' if productivity.week.sessions|default(0) == 1 else 's' }}</small></div></article>
+    </section>
+
+    <section class="dashboard-action-panel premium-panel" aria-labelledby="today-action-heading">
+        <div class="dashboard-action-icon"><i class="fas fa-compass" aria-hidden="true"></i></div>
+        <div class="dashboard-action-copy"><p class="performance-eyebrow">Your next best action</p><h2 id="today-action-heading">{{ today_action.title }}</h2><p>{{ today_action.message }}</p></div>
+        <a href="{{ today_action.url }}" class="premium-button">Take action <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+    </section>
+
+    {% if exam_countdown.is_valid %}
+    <section class="exam-countdown-card{% if exam_countdown.is_urgent %} is-urgent{% endif %}" aria-label="Exam countdown">
+        <div class="exam-countdown-icon"><i class="fas fa-calendar-days" aria-hidden="true"></i></div>
+        <div><p class="performance-eyebrow">Exam countdown</p><h2>{{ exam_countdown.days }} day{{ '' if exam_countdown.days == 1 else 's' }} to go</h2><p>Your target date is {{ exam_countdown.date.strftime('%b %d, %Y') }}. CampusMate will keep your priorities aligned to it.</p></div>
+        <a href="{{ url_for('ai_coach') }}#planner" class="premium-button secondary">Open planner</a>
+    </section>
+    {% endif %}
+
+    <div class="dashboard-two-column">
+        <section class="premium-panel performance-section dashboard-priorities-section" aria-labelledby="priorities-heading">
+            <div class="performance-section-heading"><div><p class="performance-eyebrow">CampusMate focus</p><h2 id="priorities-heading">Today's priorities</h2><p>These topics are ranked by recent misses, accuracy, and retention—not randomly.</p></div><a href="{{ url_for('ai_coach') }}#today" class="text-link">View all</a></div>
+            {% if priorities %}
+            <div class="dashboard-priority-list">
+                {% for priority in priorities[:3] %}
+                <article class="dashboard-priority-item">
+                    <div class="dashboard-priority-rank">0{{ loop.index }}</div>
+                    <div class="dashboard-priority-content"><div class="dashboard-priority-title"><h3>{{ priority.topic }}</h3><span>{{ priority.course }}</span></div><p>{{ priority.reason }}</p><div class="dashboard-priority-meta"><span><i class="fas fa-circle-exclamation" aria-hidden="true"></i> {{ priority.recent_misses }} recent miss{{ '' if priority.recent_misses == 1 else 'es' }}</span><span><i class="fas fa-clock" aria-hidden="true"></i> {{ priority.estimated_minutes }} min</span><strong>{{ priority.priority }}% priority</strong></div></div>
+                    <a href="{{ url_for('ai_questions') }}?course={{ priority.course|urlencode }}&topic={{ priority.topic|urlencode }}" class="dashboard-inline-action" aria-label="Practice {{ priority.topic }}"><i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="dashboard-inline-empty"><i class="fas fa-route" aria-hidden="true"></i><p>Complete a premium practice set and CampusMate will identify the topics that deserve attention next.</p><a href="{{ url_for('ai_questions') }}" class="text-link">Create a practice set</a></div>
+            {% endif %}
+        </section>
+
+        <section class="premium-panel performance-section" aria-labelledby="readiness-heading">
+            <div class="performance-section-heading"><div><p class="performance-eyebrow">Course confidence</p><h2 id="readiness-heading">Exam readiness</h2><p>Readiness balances accuracy, retention, and topic coverage.</p></div><a href="{{ url_for('performance_dashboard') }}" class="text-link">Details</a></div>
+            {% if insights.readiness %}
+            <div class="readiness-list dashboard-readiness-list">
+                {% for row in insights.readiness[:5] %}
+                <div class="readiness-row"><div><strong>{{ row.course }}</strong><small>{{ row.attempts }} questions · {{ row.accuracy }}% accuracy</small></div><div class="readiness-meter"><span style="width: {{ row.score }}%"></span></div><strong>{{ row.score }}%</strong></div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="dashboard-inline-empty"><i class="fas fa-chart-line" aria-hidden="true"></i><p>Your readiness ranking will appear after you answer course questions.</p></div>
+            {% endif %}
+        </section>
+    </div>
+
+    <section class="premium-panel performance-section dashboard-productivity-section" aria-labelledby="productivity-heading">
+        <div class="performance-section-heading"><div><p class="performance-eyebrow">Momentum report</p><h2 id="productivity-heading">This week's productivity</h2><p>{{ productivity.evidence_label }}</p></div><a href="{{ url_for('ai_coach') }}#report" class="text-link">View report</a></div>
+        <div class="dashboard-productivity-grid">
+            <div class="dashboard-productivity-highlight"><span>Questions completed</span><strong>{{ productivity.week.questions }}</strong><small>{{ productivity.week.active_days }} active day{{ '' if productivity.week.active_days == 1 else 's' }}</small></div>
+            <div class="dashboard-productivity-highlight"><span>Correct answers</span><strong>{{ productivity.week.correct }}</strong><small>{% if productivity.week.questions %}{{ ((productivity.week.correct / productivity.week.questions) * 100)|round|int }}% weekly accuracy{% else %}Build your first week{% endif %}</small></div>
+            <div class="dashboard-productivity-highlight"><span>Improvement</span><strong>{% if productivity.week.improvement is not none %}{{ '%+.1f'|format(productivity.week.improvement) }}%{% else %}—{% endif %}</strong><small>Compared with earlier sessions</small></div>
+            <div class="dashboard-productivity-highlight"><span>Weakest course</span><strong>{{ productivity.week.weakest_course or '—' }}</strong><small>Best place to focus next</small></div>
+        </div>
+    </section>
+    {% endif %}
+
+    <section class="premium-dashboard-section dashboard-tools-section" aria-labelledby="tools-heading">
+        <div class="premium-section-heading"><div><p class="performance-eyebrow">Move with intention</p><h2 id="tools-heading">Quick tools</h2><p>Everything you need to turn insight into practice is one click away.</p></div><a href="{{ url_for('premium') }}" class="premium-button secondary">View workspace</a></div>
+        <div class="premium-feature-grid dashboard-tools-grid">
+            <a href="{{ url_for('ai_coach') }}" class="premium-feature-card"><div class="premium-card-topline"><span class="premium-card-icon"><i class="fas fa-sparkles" aria-hidden="true"></i></span><span class="premium-badge">Guide</span></div><h3>CampusMate</h3><p>Get your priorities, planner, diagnosis, and a personal study partner.</p><span class="dashboard-card-link">Open coach <i class="fas fa-arrow-right" aria-hidden="true"></i></span></a>
+            <a href="{{ url_for('ai_chat') }}" class="premium-feature-card"><div class="premium-card-topline"><span class="premium-card-icon"><i class="fas fa-comments" aria-hidden="true"></i></span><span class="premium-badge">AI</span></div><h3>AI Chat</h3><p>Ask for a clear explanation, analogy, or step-by-step lesson.</p><span class="dashboard-card-link">Ask a question <i class="fas fa-arrow-right" aria-hidden="true"></i></span></a>
+            <a href="{{ url_for('ai_questions') }}" class="premium-feature-card"><div class="premium-card-topline"><span class="premium-card-icon"><i class="fas fa-file-pen" aria-hidden="true"></i></span><span class="premium-badge">Practice</span></div><h3>Generate questions</h3><p>Build a focused set for a listed or custom course and avoid repeats.</p><span class="dashboard-card-link">Create a set <i class="fas fa-arrow-right" aria-hidden="true"></i></span></a>
+            <a href="{{ url_for('mistake_notebook') }}" class="premium-feature-card"><div class="premium-card-topline"><span class="premium-card-icon"><i class="fas fa-book-open" aria-hidden="true"></i></span><span class="premium-badge is-muted">Review</span></div><h3>Mistake Notebook</h3><p>Replay the questions you missed and understand exactly what changed.</p><span class="dashboard-card-link">Review mistakes <i class="fas fa-arrow-right" aria-hidden="true"></i></span></a>
+            <a href="{{ url_for('weakness_analysis') }}" class="premium-feature-card"><div class="premium-card-topline"><span class="premium-card-icon"><i class="fas fa-magnifying-glass-chart" aria-hidden="true"></i></span><span class="premium-badge">Insights</span></div><h3>Weakness analysis</h3><p>Turn miss reasons and confidence into a practical study plan.</p><span class="dashboard-card-link">Find gaps <i class="fas fa-arrow-right" aria-hidden="true"></i></span></a>
+            <a href="{{ url_for('performance_dashboard') }}" class="premium-feature-card"><div class="premium-card-topline"><span class="premium-card-icon"><i class="fas fa-chart-line" aria-hidden="true"></i></span><span class="premium-badge">Analytics</span></div><h3>Performance insights</h3><p>Explore mastery, retention, predictions, distractors, and streaks.</p><span class="dashboard-card-link">Open analytics <i class="fas fa-arrow-right" aria-hidden="true"></i></span></a>
+        </div>
+    </section>
+
+    <section class="premium-panel performance-section dashboard-activity-section" aria-labelledby="activity-heading">
+        <div class="performance-section-heading"><div><p class="performance-eyebrow">Recorded progress</p><h2 id="activity-heading">Recent activity</h2><p>Your latest scored sessions are kept here as a simple progress trail.</p></div><a href="{{ url_for('performance_dashboard') }}" class="text-link">Full insights</a></div>
+        {% if recent_scores %}
+        <div class="premium-activity dashboard-activity-table"><table><thead><tr><th scope="col">Course</th><th scope="col">Score</th><th scope="col">Percentage</th><th scope="col">Date</th></tr></thead><tbody>{% for score in recent_scores %}<tr><td><strong>{{ score.course_code or 'Mixed practice' }}</strong></td><td>{{ score.score }}/{{ score.total }}</td><td><span class="dashboard-score-pill">{% if score.total %}{{ ((score.score / score.total) * 100)|round|int }}%{% else %}—{% endif %}</span></td><td>{{ score.created_at.strftime('%b %d, %Y') if score.created_at else 'Date unavailable' }}</td></tr>{% endfor %}</tbody></table></div>
+        {% else %}
+        <div class="performance-empty-state dashboard-activity-empty"><div class="performance-empty-icon"><i class="fas fa-chart-simple" aria-hidden="true"></i></div><h2>Your premium progress starts with one focused set.</h2><p>Answer a few questions to unlock your Academic Health Score, readiness ranking, and personalised priorities.</p><div class="performance-empty-actions"><a href="{{ url_for('ai_questions') }}" class="premium-button">Create practice set</a><a href="{{ url_for('ai_coach') }}" class="premium-button secondary">Meet CampusMate</a></div></div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

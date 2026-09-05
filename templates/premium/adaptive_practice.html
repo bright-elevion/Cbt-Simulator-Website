@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Adaptive Practice · PrepCampus Premium{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='premium.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="premium-dashboard-page adaptive-practice-page">
+    <header class="premium-page-heading">
+        <div>
+            <span class="premium-eyebrow">CampusMate adaptive engine</span>
+            <h1>Adaptive Practice</h1>
+            <p>Every set responds to your mistakes, unseen questions, recency, and selected focus so your practice time has a clear purpose.</p>
+        </div>
+        <a href="{{ url_for('premium_dashboard') }}" class="premium-button secondary"><i class="fas fa-arrow-left" aria-hidden="true"></i> Dashboard</a>
+    </header>
+
+    <section id="adaptive-config" class="adaptive-config-grid">
+        <article class="premium-panel adaptive-config-card">
+            <span class="premium-eyebrow">Build a focused set</span>
+            <h2>What should we train today?</h2>
+            <p class="premium-muted">Missed questions are prioritised first, followed by unseen and overdue topics.</p>
+            <label class="premium-field-label" for="adaptive-course">Course</label>
+            <select id="adaptive-course" class="premium-select">
+                <option value="">All available courses</option>
+                {% for course in courses %}<option value="{{ course }}">{{ course }}</option>{% endfor %}
+            </select>
+            <label class="premium-field-label" for="adaptive-topic">Topic <span>optional</span></label>
+            <select id="adaptive-topic" class="premium-select">
+                <option value="">All topics</option>
+                {% for topic in topics %}<option value="{{ topic }}">{{ topic }}</option>{% endfor %}
+            </select>
+            <label class="premium-field-label" for="adaptive-count">Questions</label>
+            <select id="adaptive-count" class="premium-select">
+                <option value="5">5 · Quick focus</option>
+                <option value="10" selected>10 · Standard set</option>
+                <option value="20">20 · Deep practice</option>
+                <option value="30">30 · Extended set</option>
+            </select>
+            <button type="button" id="start-adaptive" class="premium-button full-width"><i class="fas fa-bolt" aria-hidden="true"></i> Start adaptive set</button>
+            <p id="adaptive-config-error" class="premium-form-error" role="alert" hidden></p>
+        </article>
+        <aside class="premium-panel adaptive-method-card">
+            <div class="adaptive-method-icon"><i class="fas fa-compass" aria-hidden="true"></i></div>
+            <span class="premium-eyebrow">How it works</span>
+            <h2>Practice what will move your score</h2>
+            <ul class="premium-check-list">
+                <li><i class="fas fa-check" aria-hidden="true"></i> Repeated mistakes receive priority.</li>
+                <li><i class="fas fa-check" aria-hidden="true"></i> Unseen questions prevent memorised answers.</li>
+                <li><i class="fas fa-check" aria-hidden="true"></i> Your new attempts update CampusMate.</li>
+            </ul>
+            <div class="adaptive-history-stat"><strong>{{ total_attempts }}</strong><span>premium attempts informing your next set</span></div>
+        </aside>
+    </section>
+
+    <section id="adaptive-session" class="premium-panel adaptive-session" hidden>
+        <div class="adaptive-session-header">
+            <div><span class="premium-eyebrow" id="adaptive-signal">Adaptive set</span><h2 id="adaptive-question-count">Question 1</h2></div>
+            <div class="adaptive-session-actions"><span id="adaptive-progress-label">0/0 answered</span><button type="button" id="finish-adaptive" class="premium-button secondary">Finish set</button></div>
+        </div>
+        <div class="adaptive-progress-track"><span id="adaptive-progress-bar"></span></div>
+        <div id="adaptive-question-shell" class="adaptive-question-shell"></div>
+        <div class="adaptive-navigation"><button type="button" id="adaptive-previous" class="premium-button secondary" disabled><i class="fas fa-arrow-left" aria-hidden="true"></i> Previous</button><button type="button" id="adaptive-next" class="premium-button">Next <i class="fas fa-arrow-right" aria-hidden="true"></i></button></div>
+        <p id="adaptive-session-error" class="premium-form-error" role="alert" hidden></p>
+    </section>
+
+    <section id="adaptive-result" class="premium-empty-state large" hidden>
+        <div class="premium-empty-icon"><i class="fas fa-chart-line" aria-hidden="true"></i></div>
+        <span class="premium-eyebrow">Set complete</span>
+        <h2 id="adaptive-result-title">Your practice is recorded</h2>
+        <p id="adaptive-result-copy">CampusMate will use this attempt to improve your next recommendation.</p>
+        <div class="adaptive-result-kpis"><div><strong id="adaptive-result-score">—</strong><span>accuracy</span></div><div><strong id="adaptive-result-correct">—</strong><span>correct</span></div><div><strong id="adaptive-result-total">—</strong><span>answered</span></div></div>
+        <div class="premium-heading-actions"><button type="button" id="another-adaptive" class="premium-button"><i class="fas fa-rotate" aria-hidden="true"></i> New adaptive set</button><a href="{{ url_for('premium_dashboard') }}" class="premium-button secondary">Back to dashboard</a></div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='question-renderer.js') }}"></script>
+<script>
+(() => {
+    const config = document.getElementById('adaptive-config');
+    const sessionPanel = document.getElementById('adaptive-session');
+    const resultPanel = document.getElementById('adaptive-result');
+    const errorBox = document.getElementById('adaptive-config-error');
+    const sessionError = document.getElementById('adaptive-session-error');
+    const shell = document.getElementById('adaptive-question-shell');
+    let questions = [], answers = {}, index = 0, startedAt = 0;
+
+    const showError = (element, message) => { element.textContent = message; element.hidden = false; };
+    const clearError = (element) => { element.hidden = true; element.textContent = ''; };
+    const questionText = (q) => q.question || q.question_text || '';
+
+    function renderQuestion() {
+        const q = questions[index];
+        if (!q) return;
+        const selected = answers[q.id] || '';
+        shell.innerHTML = `<div class="adaptive-question-meta"><span>${q.course_code || 'Course'}</span><span>${q.topic || 'Core concepts'}</span></div><div id="adaptive-question-text" class="structured-question-text"></div><div class="adaptive-options" role="group" aria-label="Answer options"></div>`;
+        const text = document.getElementById('adaptive-question-text');
+        const optionsWrap = shell.querySelector('.adaptive-options');
+        const optionEls = [];
+        ['A', 'B', 'C', 'D'].forEach((letter, position) => {
+            const button = document.createElement('button');
+            button.type = 'button'; button.className = 'adaptive-option'; button.dataset.option = letter;
+            button.innerHTML = `<span class="adaptive-option-letter">${letter}</span><span class="adaptive-option-text"></span>`;
+            optionsWrap.appendChild(button); optionEls.push(button.querySelector('.adaptive-option-text'));
+            button.addEventListener('click', () => { answers[q.id] = letter; renderQuestion(); });
+        });
+        if (window.PrepCampusQuestionRenderer) {
+            window.PrepCampusQuestionRenderer.setQuestion(text, optionEls, q);
+            window.PrepCampusQuestionRenderer.typeset(shell);
+        } else { text.textContent = questionText(q); }
+        optionsWrap.querySelectorAll('.adaptive-option').forEach((button) => { if (button.dataset.option === selected) button.classList.add('selected'); });
+        document.getElementById('adaptive-question-count').textContent = `Question ${index + 1} of ${questions.length}`;
+        document.getElementById('adaptive-progress-label').textContent = `${Object.keys(answers).length}/${questions.length} answered`;
+        document.getElementById('adaptive-progress-bar').style.width = `${((index + 1) / questions.length) * 100}%`;
+        document.getElementById('adaptive-previous').disabled = index === 0;
+        document.getElementById('adaptive-next').textContent = index === questions.length - 1 ? 'Review answers' : 'Next';
+    }
+
+    async function startSet() {
+        clearError(errorBox);
+        const button = document.getElementById('start-adaptive');
+        button.disabled = true; button.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Preparing set';
+        const params = new URLSearchParams({courses: document.getElementById('adaptive-course').value, topic: document.getElementById('adaptive-topic').value, limit: document.getElementById('adaptive-count').value});
+        try {
+            const response = await fetch(`{{ url_for('adaptive_practice_questions') }}?${params.toString()}`);
+            const payload = await response.json();
+            if (!response.ok || !payload.success) throw new Error(payload.error || 'We could not prepare this set.');
+            questions = payload.questions || []; answers = {}; index = 0; startedAt = Date.now();
+            config.hidden = true; resultPanel.hidden = true; sessionPanel.hidden = false; renderQuestion();
+        } catch (error) { showError(errorBox, error.message || 'We could not prepare this set.'); }
+        finally { button.disabled = false; button.innerHTML = '<i class="fas fa-bolt" aria-hidden="true"></i> Start adaptive set'; }
+    }
+
+    async function finishSet() {
+        clearError(sessionError);
+        const pending = questions.filter((q) => !answers[q.id]);
+        if (pending.length) { showError(sessionError, `Answer ${pending.length} remaining question${pending.length === 1 ? '' : 's'} before finishing.`); return; }
+        const payload = {course: questions[0]?.course_code || 'Adaptive practice', topic: 'Adaptive practice', answers: questions.map((q) => ({question_id: q.id, answer: answers[q.id], time_spent_seconds: Math.round((Date.now() - startedAt) / 1000 / questions.length)}))};
+        const button = document.getElementById('finish-adaptive'); button.disabled = true; button.textContent = 'Saving set…';
+        try {
+            const response = await fetch('{{ url_for('record_ai_attempts') }}', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)});
+            const data = await response.json();
+            if (!response.ok || !data.success) throw new Error(data.error || 'We could not save this set.');
+            sessionPanel.hidden = true; resultPanel.hidden = false;
+            document.getElementById('adaptive-result-score').textContent = `${data.percentage || 0}%`;
+            document.getElementById('adaptive-result-correct').textContent = data.correct || 0;
+            document.getElementById('adaptive-result-total').textContent = data.total || questions.length;
+        } catch (error) { showError(sessionError, error.message || 'We could not save this set.'); }
+        finally { button.disabled = false; button.textContent = 'Finish set'; }
+    }
+
+    document.getElementById('start-adaptive').addEventListener('click', startSet);
+    document.getElementById('adaptive-next').addEventListener('click', () => { if (index === questions.length - 1) finishSet(); else { index += 1; renderQuestion(); } });
+    document.getElementById('adaptive-previous').addEventListener('click', () => { if (index > 0) { index -= 1; renderQuestion(); } });
+    document.getElementById('finish-adaptive').addEventListener('click', finishSet);
+    document.getElementById('another-adaptive').addEventListener('click', () => { resultPanel.hidden = true; config.hidden = false; });
+})();
+</script>
+{% endblock %}

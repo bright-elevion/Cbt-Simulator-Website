@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+
+{% block title %}CampusMate — PrepCampus Premium{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='premium.css') }}">
+{% endblock %}
+
+{% block extra_js %}
+<script>
+window.MathJax = {
+    tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+    svg: { fontCache: 'global' }
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="premium-page campusmate-page">
+    <section class="premium-hero campusmate-hero" aria-labelledby="campusmate-heading">
+        <div class="premium-hero-copy">
+            <span class="premium-eyebrow"><i class="fas fa-compass" aria-hidden="true"></i> Your premium study partner</span>
+            <h1 id="campusmate-heading">Meet CampusMate.</h1>
+            <p>A focused senior colleague that knows your study context, spots your next best action, and adapts your plan after every quiz.</p>
+            <div class="campusmate-hero-actions">
+                <a class="premium-button" href="#today"><i class="fas fa-bullseye" aria-hidden="true"></i> See today's priorities</a>
+                <a class="premium-button secondary" href="#tutor"><i class="fas fa-comments" aria-hidden="true"></i> Study with CampusMate</a>
+            </div>
+        </div>
+        <aside class="campusmate-identity-card" aria-label="CampusMate status">
+            <div class="campusmate-avatar" aria-hidden="true"><i class="fas fa-user-graduate"></i></div>
+            <div>
+                <strong>CampusMate</strong>
+                <p>Personal, evidence-led guidance</p>
+                <span class="campusmate-status"><span></span> Ready for your next session</span>
+            </div>
+        </aside>
+    </section>
+
+    {% if notifications %}
+    <section class="campusmate-notification-stack" aria-labelledby="accountability-heading">
+        <div class="premium-section-heading compact">
+            <div>
+                <span class="premium-eyebrow">Accountability check-in</span>
+                <h2 id="accountability-heading">Your next useful nudge</h2>
+            </div>
+        </div>
+        <div class="campusmate-notification-grid">
+            {% for item in notifications %}
+            <article class="campusmate-notification campusmate-notification--{{ item.kind }}">
+                <div class="campusmate-notification-icon" aria-hidden="true"><i class="fas {% if item.kind == 'exam' %}fa-calendar-days{% elif item.kind == 'retention' %}fa-rotate{% elif item.kind == 'inactive' %}fa-bolt{% else %}fa-check{% endif %}"></i></div>
+                <div>
+                    <h3>{{ item.title }}</h3>
+                    <p>{{ item.message }}</p>
+                    <div class="campusmate-notification-actions"><a href="{{ item.action_url }}" class="premium-text-link">Take action <i class="fas fa-arrow-right" aria-hidden="true"></i></a>{% if item.id is defined %}<button type="button" class="campusmate-dismiss-notification" data-notification-id="{{ item.id }}">Dismiss</button>{% endif %}</div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <section id="today" class="campusmate-section" aria-labelledby="today-heading">
+        <div class="premium-section-heading">
+            <div>
+                <span class="premium-eyebrow">CampusMate prioritises</span>
+                <h2 id="today-heading">Today's priorities</h2>
+                <p>Not a list of everything you could study. These are the topics most likely to improve your next result.</p>
+            </div>
+            <span class="campusmate-evidence-pill">Evidence-led recommendations</span>
+        </div>
+        {% if priorities %}
+        <div class="campusmate-priority-grid">
+            {% for item in priorities[:3] %}
+            <article class="campusmate-priority-card {% if loop.first %}is-primary{% endif %}">
+                <div class="campusmate-priority-topline">
+                    <span class="campusmate-priority-number">{{ loop.index }}</span>
+                    <span class="campusmate-priority-score">{{ item.priority }}% priority</span>
+                </div>
+                <p class="campusmate-course-label">{{ item.course }}</p>
+                <h3>{{ item.topic }}</h3>
+                <p class="campusmate-reason"><strong>Why now:</strong> {{ item.reason }}</p>
+                <div class="campusmate-priority-meta">
+                    <span><i class="far fa-clock" aria-hidden="true"></i> {{ item.estimated_minutes }} min</span>
+                    {% if item.expected_improvement is not none %}<span><i class="fas fa-arrow-trend-up" aria-hidden="true"></i> +{{ item.expected_improvement }}% estimate</span>{% else %}<span><i class="fas fa-circle-info" aria-hidden="true"></i> Early signal</span>{% endif %}
+                </div>
+                <p class="campusmate-evidence-note">{{ item.evidence }}</p>
+                <a href="{{ url_for('ai_questions') }}?course={{ item.course|urlencode }}&topic={{ item.topic|urlencode }}" class="premium-button small">Practise this topic <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="campusmate-empty-state"><i class="fas fa-compass" aria-hidden="true"></i><h3>Your priorities will appear here</h3><p>Complete a logged-in practice session and CampusMate will turn your results into a focused recommendation.</p><a href="{{ url_for('ai_questions') }}" class="premium-button">Start practice</a></div>
+        {% endif %}
+    </section>
+
+    <div class="campusmate-dashboard-grid">
+        <section id="planner" class="campusmate-panel" aria-labelledby="planner-heading">
+            <div class="campusmate-panel-heading"><div><span class="premium-eyebrow">Adaptive planning</span><h2 id="planner-heading">7-day exam planner</h2></div><i class="fas fa-calendar-check" aria-hidden="true"></i></div>
+            <p class="campusmate-panel-intro">Set a deadline and available study time. CampusMate will distribute the highest-priority work and preserve completed days when new quiz data arrives.</p>
+            <form id="campusmate-planner-form" class="campusmate-form">
+                <div class="campusmate-form-grid">
+                    <label>Exam date<input type="date" name="exam_date" value="{% if campusmate_profile.exam_date %}{{ campusmate_profile.exam_date.strftime('%Y-%m-%d') }}{% endif %}" required></label>
+                    <label>Minutes per day<input type="number" name="daily_minutes" min="20" max="480" step="5" value="{{ campusmate_profile.daily_minutes or 60 }}" required></label>
+                </div>
+                <label>Courses <span class="campusmate-label-hint">Separate with commas</span><input type="text" name="courses" value="{{ campusmate_profile.courses|join(', ') }}" placeholder="BIO101, CHM101, MTH101" required></label>
+                <button type="submit" class="premium-button small"><i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i> Build adaptive plan</button>
+                <p id="planner-feedback" class="campusmate-form-feedback" role="status" aria-live="polite"></p>
+            </form>
+            {% if plan %}
+            <div class="campusmate-plan-list" id="campusmate-plan-list">
+                {% for day in plan.days %}
+                <article class="campusmate-plan-day {% if day.completed %}is-complete{% endif %}">
+                    <div class="campusmate-plan-day-head"><div><strong>{{ day.day }}</strong><span>{{ day.date }}</span></div><button type="button" class="campusmate-complete-day" data-plan-date="{{ day.date }}" aria-label="Mark {{ day.day }} complete">{% if day.completed %}<i class="fas fa-check" aria-hidden="true"></i>{% else %}<i class="far fa-circle" aria-hidden="true"></i>{% endif %}</button></div>
+                    <p>{{ day.task }}</p>
+                    <div class="campusmate-plan-allocations">{% for allocation in day.allocations %}<span><strong>{{ allocation.course }}</strong> {{ allocation.minutes }} min{% if allocation.topic %} · {{ allocation.topic }}{% endif %}</span>{% endfor %}</div>
+                </article>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </section>
+
+        <section class="campusmate-panel campusmate-panel--profile" aria-labelledby="profile-heading">
+            <div class="campusmate-panel-heading"><div><span class="premium-eyebrow">Personal context</span><h2 id="profile-heading">Help CampusMate know you</h2></div><i class="fas fa-id-card" aria-hidden="true"></i></div>
+            <p class="campusmate-panel-intro">Only the context you provide is saved. It helps tutoring sound relevant without asking the AI to guess who you are.</p>
+            <form id="campusmate-profile-form" class="campusmate-form">
+                <div class="campusmate-form-grid"><label>University<input type="text" name="university" maxlength="120" value="{{ campusmate_profile.university }}" placeholder="e.g. AKSU"></label><label>Department<input type="text" name="department" maxlength="120" value="{{ campusmate_profile.department }}" placeholder="e.g. Biological Sciences"></label></div>
+                <div class="campusmate-form-grid"><label>Level<input type="text" name="level" maxlength="40" value="{{ campusmate_profile.level }}" placeholder="e.g. 100 level"></label><label>Semester<input type="text" name="semester" maxlength="40" value="{{ campusmate_profile.semester }}" placeholder="e.g. First semester"></label></div>
+                <button type="submit" class="premium-button secondary small">Save context</button><p id="profile-feedback" class="campusmate-form-feedback" role="status" aria-live="polite"></p>
+            </form>
+        </section>
+    </div>
+
+    {% if emergency_plan %}
+    <section class="campusmate-emergency" aria-labelledby="emergency-heading">
+        <div><span class="premium-eyebrow">Exam in {{ emergency_plan.days_until_exam }} day{% if emergency_plan.days_until_exam != 1 %}s{% endif %}</span><h2 id="emergency-heading">Emergency plan</h2><p>CampusMate has switched to the highest-value sequence: priority topics, targeted practice, then mistake review and a mock exam.</p></div>
+        <div class="campusmate-emergency-days">{% for day in emergency_plan.days %}<div><strong>{{ day.day }}</strong><span>{{ day.task }}</span>{% for allocation in day.allocations %}<small>{{ allocation.course }} · {{ allocation.minutes }} min</small>{% endfor %}</div>{% endfor %}</div>
+    </section>
+    {% endif %}
+
+    <div class="campusmate-dashboard-grid campusmate-dashboard-grid--lower">
+        <section class="campusmate-panel" aria-labelledby="diagnosis-heading">
+            <div class="campusmate-panel-heading"><div><span class="premium-eyebrow">Diagnosis over judgement</span><h2 id="diagnosis-heading">Why did I miss questions?</h2></div><i class="fas fa-stethoscope" aria-hidden="true"></i></div>
+            <p class="campusmate-panel-intro">CampusMate separates the pattern behind a miss. The diagnosis becomes more precise when you label confidence and miss reasons during review.</p>
+            {% if diagnosis['items'] %}<div class="campusmate-diagnosis-list">{% for item in diagnosis['items'] %}<div class="campusmate-diagnosis-row"><div><strong>{{ item['label'] }}</strong><span>{{ item['action'] }}</span></div><strong>{{ item['percentage'] }}%</strong><div class="campusmate-progress"><span style="width: {{ item['percentage'] }}%"></span></div></div>{% endfor %}</div><p class="campusmate-evidence-note">{{ diagnosis['evidence_label'] }}</p>{% else %}<div class="campusmate-inline-empty">{{ diagnosis['evidence_label'] }}</div>{% endif %}
+        </section>
+
+        <section class="campusmate-panel" aria-labelledby="productivity-heading">
+            <div class="campusmate-panel-heading"><div><span class="premium-eyebrow">Momentum, measured</span><h2 id="productivity-heading">Weekly productivity</h2></div><i class="fas fa-chart-line" aria-hidden="true"></i></div>
+            <div class="campusmate-stat-grid"><div><strong>{{ productivity.week.study_hours }}</strong><span>study hours</span></div><div><strong>{{ productivity.week.questions }}</strong><span>questions</span></div><div><strong>{{ productivity.week.sessions }}</strong><span>sessions</span></div><div><strong>{{ productivity.week.active_days }}</strong><span>active days</span></div></div>
+            <div class="campusmate-report-highlight"><span>Improvement</span><strong>{% if productivity.week.improvement is not none %}{% if productivity.week.improvement >= 0 %}+{% endif %}{{ productivity.week.improvement }}%{% else %}Early signal{% endif %}</strong><small>{% if productivity.week.most_improved_course %}Most improved: {{ productivity.week.most_improved_course }}{% else %}Complete more sessions to reveal your trend{% endif %}</small></div>
+            <div class="campusmate-report-meta"><span>Weakest course: <strong>{{ productivity.week.weakest_course or 'Not enough data' }}</strong></span><span>All-time questions: <strong>{{ productivity.all_time.questions }}</strong></span></div>
+            <p class="campusmate-evidence-note">{{ productivity.evidence_label }}</p>
+        </section>
+    </div>
+
+    <section id="replay" class="campusmate-section" aria-labelledby="replay-heading">
+        <div class="premium-section-heading"><div><span class="premium-eyebrow">Targeted review</span><h2 id="replay-heading">Mistake replay</h2><p>Replay your most important mistakes, ranked by repetition and likely retention risk — not randomly.</p></div><span class="campusmate-replay-count">{{ total_attempts }} questions answered</span></div>
+        {% if replay %}<div class="campusmate-replay-grid">{% for item in replay %}<article class="campusmate-replay-card"><div class="campusmate-replay-card-top"><span>{{ item.course }} · {{ item.topic }}</span><strong>{{ item.importance }} priority</strong></div><h3>{{ item.question_text }}</h3><p class="campusmate-replay-answer">Your last selection: <strong>{{ item.selected_option }}</strong> · Correct answer: <strong>{{ item.correct_option }}</strong></p><div class="campusmate-replay-meta"><span>{{ item.misses }} miss{% if item.misses != 1 %}es{% endif %}</span><span>Retention estimate: {{ item.retention }}%</span></div><button type="button" class="premium-button secondary small campusmate-replay-button" data-question-id="{{ item.question_id }}">Replay question</button></article>{% endfor %}</div>{% else %}<div class="campusmate-empty-state compact"><i class="fas fa-rotate-left" aria-hidden="true"></i><h3>Your replay queue is clear</h3><p>Previously missed questions will appear here after your next practice session.</p></div>{% endif %}
+    </section>
+
+    <section id="tutor" class="campusmate-section campusmate-tutor-section" aria-labelledby="tutor-heading">
+        <div class="premium-section-heading"><div><span class="premium-eyebrow">Guided tutoring</span><h2 id="tutor-heading">Study with CampusMate</h2><p>Choose the teaching style that matches the moment. Study-with-me mode guides you before revealing a full answer.</p></div></div>
+        <div class="campusmate-tutor-grid">
+            <form id="campusmate-tutor-form" class="campusmate-tutor-form">
+                <div class="campusmate-form-grid"><label>Course<input type="text" name="course" placeholder="BIO101" maxlength="40"></label><label>Topic<input type="text" name="topic" placeholder="Photosynthesis" maxlength="200"></label></div>
+                <label>What do you want help with?<textarea name="question" rows="5" maxlength="3000" placeholder="Paste a question or describe what feels confusing."></textarea></label>
+                <div class="campusmate-mode-grid" role="group" aria-label="CampusMate teaching mode"><label><input type="radio" name="mode" value="study_with_me" checked><span><strong>Study with me</strong><small>Guided questions first</small></span></label><label><input type="radio" name="mode" value="lecturer"><span><strong>Lecturer mode</strong><small>Use my academic context</small></span></label><label><input type="radio" name="mode" value="simplify"><span><strong>Simplify</strong><small>Plain, clear language</small></span></label><label><input type="radio" name="mode" value="analogy"><span><strong>Analogy</strong><small>Build a mental bridge</small></span></label><label><input type="radio" name="mode" value="nigerian_example"><span><strong>Real-life example</strong><small>Use a Nigerian context</small></span></label><label><input type="radio" name="mode" value="step_by_step"><span><strong>Step by step</strong><small>Break it into actions</small></span></label><label><input type="radio" name="mode" value="visual"><span><strong>Explain visually</strong><small>Describe a diagram</small></span></label></div>
+                <button type="submit" class="premium-button"><i class="fas fa-sparkles" aria-hidden="true"></i> Ask CampusMate</button><p id="tutor-feedback" class="campusmate-form-feedback" role="status" aria-live="polite"></p>
+            </form>
+            <article class="campusmate-tutor-response" id="campusmate-tutor-response" aria-live="polite"><div class="campusmate-response-placeholder" id="campusmate-conversation-placeholder"><i class="fas fa-comments" aria-hidden="true"></i><h3>Your lesson will appear here</h3><p>CampusMate will respond using the course, topic, profile, and learning signals you provide.</p></div><div class="campusmate-conversation-transcript is-hidden" id="campusmate-conversation-transcript" aria-live="polite"></div><div class="campusmate-conversation-footer"><button type="button" class="premium-button secondary is-hidden" id="campusmate-reply-cta"><i class="fas fa-reply" aria-hidden="true"></i> Reply to CampusMate</button></div></article>
+        </div>
+    </section>
+</div>
+
+<div class="campusmate-modal" id="campusmate-replay-modal" hidden><div class="campusmate-modal-backdrop" data-close-replay></div><div class="campusmate-modal-card" role="dialog" aria-modal="true" aria-labelledby="replay-modal-heading"><button type="button" class="campusmate-modal-close" data-close-replay aria-label="Close replay"><i class="fas fa-xmark" aria-hidden="true"></i></button><span class="premium-eyebrow">Mistake replay</span><h2 id="replay-modal-heading">Review the question</h2><div id="campusmate-replay-modal-content"></div></div></div>
+
+<script>
+(function () {
+    const jsonHeaders = {'Content-Type': 'application/json', 'Accept': 'application/json'};
+    const plannerForm = document.getElementById('campusmate-planner-form');
+    const plannerFeedback = document.getElementById('planner-feedback');
+    const profileForm = document.getElementById('campusmate-profile-form');
+    const profileFeedback = document.getElementById('profile-feedback');
+    const tutorForm = document.getElementById('campusmate-tutor-form');
+    const tutorFeedback = document.getElementById('tutor-feedback');
+    const tutorResponse = document.getElementById('campusmate-tutor-response');
+    const conversationPlaceholder = document.getElementById('campusmate-conversation-placeholder');
+    const conversationTranscript = document.getElementById('campusmate-conversation-transcript');
+    const replyCta = document.getElementById('campusmate-reply-cta');
+    const tutorSubmitButton = tutorForm?.querySelector('button[type="submit"]');
+    const conversationStorageKey = 'campusmate_conversation_id';
+    let conversationId = window.localStorage.getItem(conversationStorageKey) || '';
+    const modal = document.getElementById('campusmate-replay-modal');
+    const modalContent = document.getElementById('campusmate-replay-modal-content');
+
+    function formObject(form) {
+        const data = Object.fromEntries(new FormData(form).entries());
+        if (data.courses) data.courses = data.courses.split(',').map(item => item.trim()).filter(Boolean);
+        return data;
+    }
+    function setFeedback(node, message, isError) { if (node) { node.textContent = message; node.classList.toggle('is-error', Boolean(isError)); } }
+    function conversationHistoryUrl(id) { return '{{ url_for("campusmate_conversation_history", conversation_id="__conversation_id__") }}'.replace('__conversation_id__', encodeURIComponent(id)); }
+    function appendText(parent, tagName, className, text) {
+        if (!text) return null;
+        const node = document.createElement(tagName);
+        if (className) node.className = className;
+        node.textContent = text;
+        parent.appendChild(node);
+        return node;
+    }
+    function buildStructuredLesson(structured) {
+        const lesson = document.createElement('div');
+        lesson.className = 'campusmate-structured-lesson';
+        appendText(lesson, 'h3', 'campusmate-lesson-title', structured.question || 'CampusMate lesson');
+        if (structured.answer) {
+            const answer = document.createElement('div');
+            answer.className = 'campusmate-lesson-answer';
+            appendText(answer, 'strong', '', 'Key answer');
+            appendText(answer, 'p', '', structured.answer);
+            lesson.appendChild(answer);
+        }
+        if (Array.isArray(structured.steps) && structured.steps.length) {
+            appendText(lesson, 'strong', 'campusmate-lesson-section-label', 'Steps');
+            const list = document.createElement('ol');
+            structured.steps.forEach(step => appendText(list, 'li', '', step));
+            lesson.appendChild(list);
+        }
+        if (structured.explanation) {
+            const explanation = document.createElement('div');
+            explanation.className = 'campusmate-lesson-explanation';
+            appendText(explanation, 'strong', 'campusmate-lesson-section-label', 'Explanation');
+            appendText(explanation, 'p', '', structured.explanation);
+            lesson.appendChild(explanation);
+        }
+        if (Array.isArray(structured.equations) && structured.equations.length) {
+            const equations = document.createElement('div');
+            equations.className = 'campusmate-lesson-equations';
+            appendText(equations, 'strong', 'campusmate-lesson-section-label', 'Formulae');
+            structured.equations.forEach(equation => appendText(equations, 'p', 'campusmate-equation', '\\(' + equation + '\\)'));
+            lesson.appendChild(equations);
+        }
+        return lesson;
+    }
+    function renderConversation(turns) {
+        if (!conversationTranscript || !conversationPlaceholder) return;
+        if (!turns || !turns.length) { conversationTranscript.hidden = true; conversationTranscript.classList.add('is-hidden'); conversationPlaceholder.hidden = false; conversationPlaceholder.classList.remove('is-hidden'); replyCta?.classList.add('is-hidden'); return; }
+        conversationPlaceholder.hidden = true; conversationPlaceholder.classList.add('is-hidden'); conversationTranscript.hidden = false; conversationTranscript.classList.remove('is-hidden'); replyCta?.classList.remove('is-hidden'); conversationTranscript.innerHTML = '';
+        turns.forEach(turn => {
+            const bubble = document.createElement('div');
+            bubble.className = 'campusmate-conversation-turn ' + (turn.role === 'user' ? 'is-user' : 'is-campusmate');
+            appendText(bubble, 'span', 'campusmate-conversation-label', turn.role === 'user' ? 'You' : 'CampusMate');
+            if (turn.role === 'assistant' && turn.structured) bubble.appendChild(buildStructuredLesson(turn.structured));
+            else appendText(bubble, 'p', '', turn.content || '');
+            conversationTranscript.appendChild(bubble);
+        });
+        conversationTranscript.scrollTop = conversationTranscript.scrollHeight;
+        if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') window.MathJax.typesetPromise([conversationTranscript]).catch(() => {});
+        if (tutorSubmitButton) tutorSubmitButton.innerHTML = '<i class="fas fa-reply" aria-hidden="true"></i> Reply to CampusMate';
+    }
+    function resetConversation() { conversationId = ''; window.localStorage.removeItem(conversationStorageKey); renderConversation([]); if (tutorSubmitButton) tutorSubmitButton.innerHTML = '<i class="fas fa-sparkles" aria-hidden="true"></i> Ask CampusMate'; }
+    replyCta?.addEventListener('click', function () { const questionField = tutorForm?.querySelector('[name="question"]'); if (!questionField) return; questionField.focus(); questionField.scrollIntoView({behavior: 'smooth', block: 'center'}); setFeedback(tutorFeedback, 'Continue the lesson with your next question.', false); });
+    if (conversationId) { fetch(conversationHistoryUrl(conversationId), {headers: {'Accept': 'application/json'}}).then(response => response.ok ? response.json() : null).then(data => { if (data?.success && data.turns?.length) renderConversation(data.turns); else resetConversation(); }).catch(() => resetConversation()); }
+
+    plannerForm?.addEventListener('submit', async function (event) {
+        event.preventDefault(); setFeedback(plannerFeedback, 'CampusMate is recalculating your plan…', false);
+        try { const response = await fetch('{{ url_for("save_campusmate_planner") }}', {method: 'POST', headers: jsonHeaders, body: JSON.stringify(formObject(plannerForm))}); const data = await response.json(); if (!response.ok || !data.success) throw new Error(data.error || 'Unable to build plan.'); setFeedback(plannerFeedback, 'Plan updated. Refreshing your study days…', false); window.setTimeout(() => window.location.reload(), 500); } catch (error) { setFeedback(plannerFeedback, error.message, true); }
+    });
+    profileForm?.addEventListener('submit', async function (event) {
+        event.preventDefault(); setFeedback(profileFeedback, 'Saving your context…', false);
+        try { const response = await fetch('{{ url_for("save_campusmate_profile") }}', {method: 'POST', headers: jsonHeaders, body: JSON.stringify(formObject(profileForm))}); const data = await response.json(); if (!response.ok || !data.success) throw new Error(data.error || 'Unable to save context.'); setFeedback(profileFeedback, 'Context saved for personalised tutoring.', false); } catch (error) { setFeedback(profileFeedback, error.message, true); }
+    });
+    document.querySelectorAll('.campusmate-complete-day').forEach(button => button.addEventListener('click', async function () { const response = await fetch('{{ url_for("complete_campusmate_plan_day") }}', {method: 'POST', headers: jsonHeaders, body: JSON.stringify({date: button.dataset.planDate})}); if (response.ok) window.location.reload(); }));
+    document.querySelectorAll('.campusmate-dismiss-notification').forEach(button => button.addEventListener('click', async function () { const response = await fetch('/premium/coach/notifications/' + encodeURIComponent(button.dataset.notificationId) + '/dismiss', {method: 'POST', headers: jsonHeaders, body: '{}'}); if (response.ok) button.closest('.campusmate-notification')?.remove(); }));
+    tutorForm?.addEventListener('submit', async function (event) {
+        event.preventDefault(); setFeedback(tutorFeedback, conversationId ? 'CampusMate is continuing the lesson…' : 'CampusMate is preparing your lesson…', false); if (tutorSubmitButton) tutorSubmitButton.disabled = true;
+        try { const payload = formObject(tutorForm); if (conversationId) payload.conversation_id = conversationId; const response = await fetch('{{ url_for("campusmate_tutor") }}', {method: 'POST', headers: jsonHeaders, body: JSON.stringify(payload)}); const data = await response.json(); if (!response.ok || !data.success) throw new Error(data.error || 'Unable to prepare lesson.'); conversationId = data.conversation_id || conversationId; if (conversationId) window.localStorage.setItem(conversationStorageKey, conversationId); renderConversation(data.turns || []); tutorForm.querySelector('[name="question"]').value = ''; setFeedback(tutorFeedback, 'CampusMate replied. Continue whenever you are ready.', false); } catch (error) { setFeedback(tutorFeedback, error.message, true); } finally { if (tutorSubmitButton) tutorSubmitButton.disabled = false; }
+    });
+    function closeModal() { if (modal) modal.hidden = true; }
+    document.querySelectorAll('[data-close-replay]').forEach(button => button.addEventListener('click', closeModal));
+    document.querySelectorAll('.campusmate-replay-button').forEach(button => button.addEventListener('click', async function () { modal.hidden = false; modalContent.innerHTML = '<p>Loading the original question…</p>'; try { const response = await fetch('/premium/coach/replay/' + encodeURIComponent(button.dataset.questionId)); const data = await response.json(); if (!response.ok || !data.success) throw new Error(data.error || 'Unable to load question.'); modalContent.innerHTML = '<p class="campusmate-replay-course">' + data.course + ' · ' + data.topic + '</p><h3>' + data.question_text + '</h3><div class="campusmate-replay-options">' + ['a','b','c','d'].map(letter => '<div><strong>' + letter.toUpperCase() + '</strong> ' + (data['option_' + letter] || '') + '</div>').join('') + '</div><p class="campusmate-replay-hint">Review your previous choice, explain why it was wrong, then practise the concept again.</p>'; } catch (error) { modalContent.textContent = error.message; } }));
+})();
+</script>
+{% endblock %}
